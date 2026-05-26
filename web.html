@@ -1,0 +1,4047 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarsLink — Controle Terra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #181818;
+  --surface:   #202020;
+  --card:      #272727;
+  --card2:     #2E2E2E;
+  --sidebar:   #1C1C1C;
+  --border:    rgba(255,255,255,0.07);
+  --border-md: rgba(255,255,255,0.13);
+  --border-hi: rgba(255,255,255,0.22);
+  --orange:    #FC6E20;
+  --orange-d:  #C85010;
+  --cream:     #FFE7D0;
+  --cream-d:   #C4A882;
+  --text:      #EEEAE4;
+  --sub:       #8A8680;
+  --muted:     #525050;
+  --success:   #4BB87A;
+  --warn:      #E8A020;
+  --danger:    #D04030;
+  --r-sm:      6px;
+  --r-md:      10px;
+  --r-lg:      14px;
+  --font:      'Space Grotesk', sans-serif;
+  --mono:      'Space Mono', monospace;
+  --sidebar-w: 220px;
+  --sidebar-collapsed: 56px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  font-family: var(--font);
+  color: var(--text);
+  display: flex;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ── GRAIN ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 220px;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: screen;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-collapsed);
+  background: var(--sidebar);
+  border-right: 0.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  height: 100vh;
+  position: fixed;
+  left: 0; top: 0;
+  z-index: 100;
+  overflow: hidden;
+  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sidebar:hover {
+  width: var(--sidebar-w);
+}
+.sidebar.expanded {
+  width: var(--sidebar-w);
+}
+
+.sidebar-logo {
+  padding: 16px 0;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  min-height: 64px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.logo-icon-wrap {
+  width: var(--sidebar-collapsed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+}
+.logo-icon {
+  width: 28px; height: 28px;
+  background: var(--orange);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: #1A1A1A;
+  flex-shrink: 0;
+}
+.logo-text-wrap {
+  padding: 0 20px;
+  margin-top: 0;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.18s 0.08s, transform 0.18s 0.08s;
+  white-space: nowrap;
+}
+.sidebar:hover .logo-text-wrap {
+  opacity: 1;
+  transform: translateX(0);
+}
+.logo-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--orange);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.logo-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.logo-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 2px;
+  letter-spacing: 0.04em;
+}
+
+.sidebar-mission {
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--border);
+  background: rgba(252,110,32,0.04);
+  overflow: hidden;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+.mission-icon-wrap {
+  width: var(--sidebar-collapsed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mission-text-wrap {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.18s 0.08s, transform 0.18s 0.08s;
+  white-space: nowrap;
+}
+.sidebar:hover .mission-text-wrap {
+  opacity: 1;
+  transform: translateX(0);
+}
+.mission-day {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--orange);
+  font-weight: 700;
+}
+.mission-status {
+  font-size: 11px;
+  color: var(--sub);
+  margin-top: 2px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 0;
+  overflow-y: auto;
+}
+/* nav-section-lbl moved into nav-item block */
+.nav-section-lbl {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 0 4px;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.sidebar:hover .nav-section-lbl {
+  text-align: left;
+  padding: 8px 20px 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-size: 13px;
+  color: var(--sub);
+  border-left: 2px solid transparent;
+  user-select: none;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.nav-item:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+.nav-item.active {
+  color: var(--orange);
+  border-left-color: var(--orange);
+  background: rgba(252,110,32,0.06);
+}
+.nav-icon-wrap {
+  width: calc(var(--sidebar-collapsed) - 2px);
+  min-width: calc(var(--sidebar-collapsed) - 2px);
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.nav-item svg { flex-shrink: 0; width: 17px; height: 17px; }
+.nav-label {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.18s 0.06s, transform 0.18s 0.06s;
+  white-space: nowrap;
+  flex: 1;
+}
+.sidebar:hover .nav-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+.nav-badge {
+  margin-left: auto;
+  margin-right: 14px;
+  font-family: var(--mono);
+  font-size: 9px;
+  background: rgba(252,110,32,0.15);
+  color: var(--orange);
+  border: 0.5px solid rgba(252,110,32,0.3);
+  border-radius: 10px;
+  padding: 1px 6px;
+  opacity: 0;
+  transition: opacity 0.18s 0.06s;
+  flex-shrink: 0;
+}
+.nav-badge.warn {
+  background: rgba(232,160,32,0.15);
+  color: #E8A020;
+  border-color: rgba(232,160,32,0.3);
+}
+.sidebar:hover .nav-badge {
+  opacity: 1;
+}
+
+.sidebar-delay {
+  padding: 12px 0;
+  border-top: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.delay-icon-wrap {
+  width: var(--sidebar-collapsed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.delay-text-wrap {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.18s 0.06s, transform 0.18s 0.06s;
+  white-space: nowrap;
+}
+.sidebar:hover .delay-text-wrap {
+  opacity: 1;
+  transform: translateX(0);
+}
+.delay-pulse {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--orange);
+  flex-shrink: 0;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
+.delay-info { font-family: var(--mono); font-size: 9px; color: var(--sub); line-height: 1.4; }
+.delay-val { font-size: 13px; font-weight: 700; color: var(--orange); font-family: var(--mono); }
+
+/* ── MAIN CONTENT ── */
+.main {
+  margin-left: var(--sidebar-collapsed);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.topbar {
+  background: var(--surface);
+  border-bottom: 0.5px solid var(--border);
+  padding: 0 28px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.topbar-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.topbar-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.tp-green { background: rgba(75,184,122,0.1); color: #4BB87A; border: 0.5px solid rgba(75,184,122,0.22); }
+.tp-orange { background: rgba(252,110,32,0.1); color: var(--orange); border: 0.5px solid rgba(252,110,32,0.25); }
+.pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.operator-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--card2);
+  border: 1px solid var(--border-md);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--cream-d);
+}
+
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-md) transparent;
+  padding: 24px 28px;
+}
+.content-area::-webkit-scrollbar { width: 4px; }
+.content-area::-webkit-scrollbar-track { background: transparent; }
+.content-area::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 2px; }
+
+/* ── SCREENS ── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── GRID LAYOUTS ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 12px; }
+.grid-main-side { display: grid; grid-template-columns: 1fr 340px; gap: 12px; margin-bottom: 12px; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+}
+.card.accent { border-color: rgba(252,110,32,0.22); }
+.card.accent-green { border-color: rgba(75,184,122,0.2); }
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 180px;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+.card.grain::before { opacity: 1; }
+
+.card-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.card-label.orange { color: rgba(252,110,32,0.7); }
+.card-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.card-value.orange { color: var(--orange); }
+.card-value.cream { color: var(--cream); }
+.card-value.green { color: var(--success); }
+.card-value.sm { font-size: 22px; }
+.card-sub {
+  font-size: 12px;
+  color: var(--sub);
+  margin-top: 5px;
+  line-height: 1.4;
+}
+.card-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── PILLS ── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+}
+.pill.orange { background: rgba(252,110,32,0.12); color: #FC6E20; border: 0.5px solid rgba(252,110,32,0.28); }
+.pill.green  { background: rgba(75,184,122,0.1); color: #4BB87A; border: 0.5px solid rgba(75,184,122,0.2); }
+.pill.warn   { background: rgba(232,160,32,0.1); color: #E8A020; border: 0.5px solid rgba(232,160,32,0.22); }
+.pill.gray   { background: rgba(255,255,255,0.05); color: var(--sub); border: 0.5px solid var(--border-md); }
+.pill.red    { background: rgba(208,64,48,0.1); color: #D04030; border: 0.5px solid rgba(208,64,48,0.22); }
+
+/* ── BUTTONS ── */
+.btn-primary {
+  background: var(--orange);
+  color: #1A1A1A;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 9px 18px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  letter-spacing: 0.01em;
+}
+.btn-primary:active { opacity: 0.85; }
+.btn-ghost {
+  background: transparent;
+  color: var(--sub);
+  font-family: var(--mono);
+  font-size: 11px;
+  border: 0.5px solid var(--border-md);
+  border-radius: var(--r-md);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  letter-spacing: 0.03em;
+}
+.btn-ghost:hover { border-color: var(--border-hi); color: var(--text); }
+.btn-icon {
+  width: 30px; height: 30px;
+  border-radius: var(--r-sm);
+  border: 0.5px solid var(--border-md);
+  background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--sub);
+  transition: color 0.15s, border-color 0.15s;
+}
+.btn-icon:hover { color: var(--text); border-color: var(--border-hi); }
+
+/* ── SECTION LABEL ── */
+.section-lbl {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+.section-lbl:first-child { margin-top: 0; }
+
+/* ── TABLE ── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 0 12px 8px;
+  border-bottom: 0.5px solid var(--border);
+}
+.data-table td {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--sub);
+  border-bottom: 0.5px solid var(--border);
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(255,255,255,0.02); }
+.td-primary { color: var(--text) !important; font-weight: 500; }
+.td-mono { font-family: var(--mono) !important; font-size: 10px !important; }
+
+/* ── MESSAGE LIST ── */
+.msg-row {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 0.5px solid var(--border);
+  align-items: flex-start;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: var(--r-sm);
+}
+.msg-row:last-child { border-bottom: none; }
+.msg-row:hover { background: rgba(255,255,255,0.02); }
+.msg-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--card2);
+  border: 1px solid var(--border-md);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--cream-d);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.msg-body { flex: 1; min-width: 0; }
+.msg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.msg-sender { font-size: 13px; font-weight: 600; color: var(--text); }
+.msg-time { font-family: var(--mono); font-size: 9px; color: var(--muted); }
+.msg-preview { font-size: 12px; color: var(--sub); line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 500px; }
+.msg-footer { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
+
+/* ── JOURNEY BAR ── */
+.journey {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+}
+.j-node { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.j-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border-md);
+}
+.j-dot.done { background: var(--success); }
+.j-dot.active { background: var(--orange); box-shadow: 0 0 5px rgba(252,110,32,0.4); }
+.j-lbl { font-family: var(--mono); font-size: 7px; color: var(--muted); white-space: nowrap; }
+.j-line { flex: 1; height: 1px; background: var(--border); margin-bottom: 9px; }
+.j-line.done { background: var(--success); }
+
+/* ── CREW CARD ── */
+.crew-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.crew-row:last-child { border-bottom: none; }
+.crew-av {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--card2);
+  border: 1.5px solid var(--border-md);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cream-d);
+  flex-shrink: 0;
+}
+.crew-info { flex: 1; }
+.crew-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.crew-role { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-top: 1px; }
+.vital-mini { display: flex; gap: 10px; align-items: center; }
+.vital-item { display: flex; flex-direction: column; align-items: flex-end; }
+.vital-num { font-family: var(--mono); font-size: 11px; font-weight: 700; }
+.vital-lbl { font-family: var(--mono); font-size: 8px; color: var(--muted); }
+
+/* ── TASK ROW ── */
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.task-row:last-child { border-bottom: none; }
+.task-check-box {
+  width: 16px; height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid var(--border-hi);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.task-check-box.done { background: var(--success); border-color: var(--success); }
+.task-check-box.done::after {
+  content: '';
+  width: 8px; height: 5px;
+  border-left: 1.5px solid #fff;
+  border-bottom: 1.5px solid #fff;
+  transform: rotate(-45deg) translate(1px,-1px);
+}
+.prio-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.task-name { flex: 1; font-size: 12px; color: var(--text); }
+.task-name.done { color: var(--muted); text-decoration: line-through; }
+.task-meta { font-family: var(--mono); font-size: 9px; color: var(--muted); }
+
+/* ── LOG ENTRY ── */
+.log-row {
+  padding: 12px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.log-row:last-child { border-bottom: none; }
+.log-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.log-author { font-size: 12px; font-weight: 600; color: var(--text); }
+.log-day { font-family: var(--mono); font-size: 9px; color: var(--orange); }
+.log-text { font-size: 12px; color: var(--sub); line-height: 1.6; }
+.log-media-row { display: flex; gap: 5px; margin-top: 8px; }
+.log-thumb {
+  width: 52px; height: 52px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 0.5px solid var(--border-md);
+  flex-shrink: 0;
+}
+.log-thumb canvas { width: 100%; height: 100%; display: block; }
+
+/* ── COMPOSE ── */
+.compose-box {
+  background: var(--card);
+  border: 0.5px solid var(--border-md);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.compose-header {
+  padding: 10px 14px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.compose-lbl { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.07em; }
+.compose-ta {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 12px 14px;
+  resize: none;
+  outline: none;
+  min-height: 72px;
+}
+.compose-ta::placeholder { color: var(--muted); }
+.compose-footer {
+  padding: 8px 14px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 0.5px solid var(--border);
+}
+
+/* ── ORBITAL ── */
+#orb-canvas-dash { display: block; width: 100%; }
+
+/* ── PROGRESS BAR ── */
+.prog-bar { height: 4px; background: var(--border-md); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+.prog-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+
+/* ── SIGNAL BAR ── */
+.signal-quality {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+.sq-bar { width: 4px; border-radius: 1px; background: var(--muted); }
+.sq-bar.on { background: var(--orange); }
+
+/* ── DIVIDER ── */
+hr.dash-div { border: none; border-top: 0.5px solid var(--border); margin: 16px 0; }
+
+/* ── SCROLLBAR ── */
+* { scrollbar-width: thin; scrollbar-color: var(--border-md) transparent; }
+
+/* ── ALERT BANNER ── */
+.alert-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--r-md);
+  margin-bottom: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.ab-warn { background: rgba(232,160,32,0.08); border: 0.5px solid rgba(232,160,32,0.22); color: #C4A020; }
+.ab-info { background: rgba(252,110,32,0.07); border: 0.5px solid rgba(252,110,32,0.2); color: var(--cream-d); }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  gap: 8px;
+}
+
+/* ── STAT BIG ── */
+.stat-big { display: flex; align-items: baseline; gap: 4px; }
+.stat-num { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+.stat-unit { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--success);
+  color: #111;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 20px;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  transform: translateY(10px);
+  z-index: 9998;
+  letter-spacing: 0.04em;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── OVERVIEW MSG ROW ── */
+.ov-msg-row {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--border);
+  align-items: flex-start;
+}
+.ov-msg-row:last-child { border-bottom: none; }
+.ov-msg-body { flex: 1; min-width: 0; }
+.ov-msg-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 3px;
+}
+.ov-msg-author { display: flex; align-items: baseline; gap: 6px; }
+.ov-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.ov-role { font-family: var(--mono); font-size: 9px; color: var(--muted); }
+.ov-time { font-family: var(--mono); font-size: 9px; color: var(--muted); flex-shrink: 0; }
+.ov-msg-preview { font-size: 11px; color: var(--sub); line-height: 1.5; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ov-msg-tags { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+
+/* ── CREW TASK BLOCK ── */
+.crew-task-block {
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.crew-task-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+}
+.crew-task-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.crew-task-role { font-family: var(--mono); font-size: 9px; color: var(--muted); }
+
+
+/* ── COMMS SCREEN ── */
+.comms-media-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 0.5px solid var(--border-md);
+  border-radius: var(--r-md);
+  padding: 7px 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--sub);
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: border-color 0.15s, color 0.15s;
+}
+.comms-media-btn:hover { border-color: var(--orange); color: var(--orange); }
+.comms-media-thumb {
+  width: 52px; height: 52px;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  position: relative;
+  border: 0.5px solid var(--border-md);
+  flex-shrink: 0;
+  background: var(--surface);
+}
+.comms-media-thumb img, .comms-media-thumb video {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.comms-thumb-remove {
+  position: absolute;
+  top: 2px; right: 2px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.75);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 8px; color: #fff; font-weight: 700;
+}
+
+/* ── RECIPIENT ROWS ── */
+.recipient-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.recipient-row:hover { background: rgba(255,255,255,0.03); }
+.recipient-row.active { background: rgba(252,110,32,0.06); }
+.rec-check {
+  width: 15px; height: 15px;
+  border-radius: 4px;
+  border: 1.5px solid var(--border-hi);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.recipient-row.active .rec-check {
+  background: var(--orange);
+  border-color: var(--orange);
+}
+.rec-name { font-size: 12px; font-weight: 500; color: var(--text); flex-shrink: 0; }
+.rec-role { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-left: 2px; }
+
+
+/* ── TASKS SCREEN ── */
+.task-field-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.09em;
+  margin-bottom: 6px;
+}
+.task-input {
+  width: 100%;
+  background: var(--surface);
+  border: 0.5px solid var(--border-md);
+  border-radius: var(--r-md);
+  padding: 9px 12px;
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.task-input:focus { border-color: var(--orange); }
+.task-input::placeholder { color: var(--muted); }
+.task-prio-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface);
+  border: 0.5px solid var(--border-md);
+  border-radius: var(--r-md);
+  padding: 6px 11px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--sub);
+  cursor: pointer;
+  transition: all 0.15s;
+  flex: 1;
+  justify-content: center;
+}
+.task-prio-btn.active {
+  background: rgba(252,110,32,0.1);
+  border-color: rgba(252,110,32,0.35);
+  color: var(--orange);
+}
+.task-when-btn {
+  background: var(--surface);
+  border: 0.5px solid var(--border-md);
+  border-radius: var(--r-md);
+  padding: 5px 11px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--sub);
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.03em;
+}
+.task-when-btn.active {
+  background: rgba(252,110,32,0.1);
+  border-color: rgba(252,110,32,0.35);
+  color: var(--orange);
+}
+
+
+/* ── LOGS SCREEN ── */
+.log-filter-select {
+  background: var(--surface);
+  border: 0.5px solid var(--border-md);
+  border-radius: var(--r-md);
+  padding: 7px 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--sub);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23525050' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 26px;
+}
+.log-filter-select:focus { border-color: var(--orange); color: var(--text); }
+.log-filter-select option { background: var(--card); color: var(--text); }
+.log-row { padding:14px 0; border-bottom:0.5px solid var(--border); transition: opacity 0.2s; }
+.log-row:last-child { border-bottom:none; }
+.log-row.hidden { display: none; }
+
+
+
+/* ══ LOGIN SCREEN ══ */
+:root {
+  --bg:       #181818;
+  --surface:  #202020;
+  --card:     #272727;
+  --card2:    #2E2E2E;
+  --border:   rgba(255,255,255,0.07);
+  --border-md:rgba(255,255,255,0.13);
+  --border-hi:rgba(255,255,255,0.22);
+  --orange:   #FC6E20;
+  --orange-d: #C85010;
+  --cream:    #FFE7D0;
+  --cream-d:  #C4A882;
+  --text:     #EEEAE4;
+  --sub:      #8A8680;
+  --muted:    #525050;
+  --success:  #4BB87A;
+  --warn:     #E8A020;
+  --danger:   #D04030;
+  --r-sm:     6px;
+  --r-md:     10px;
+  --r-lg:     14px;
+  --font:     'Space Grotesk', sans-serif;
+  --mono:     'Space Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  font-family: var(--font);
+  color: var(--text);
+  min-height: 100vh;
+  overflow: hidden;
+}
+#dashboard-wrap {
+  display: none;
+  flex-direction: row;
+  min-height: 100vh;
+}
+
+/* ── GRAIN ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='0.045'/%3E%3C/svg%3E");
+  background-size: 220px;
+  pointer-events: none;
+  z-index: 999;
+  mix-blend-mode: screen;
+}
+
+/* ── LEFT PANEL ── */
+.left-panel {
+  width: 52%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  border-right: 0.5px solid var(--border);
+}
+
+/* Orbital background canvas */
+#bg-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Content over canvas */
+.left-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 40px 48px;
+}
+
+.left-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-mark {
+  width: 36px; height: 36px;
+  background: var(--orange);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: #1A1A1A;
+}
+.logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.logo-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--orange);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.left-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.mission-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--orange);
+  background: rgba(252,110,32,0.1);
+  border: 0.5px solid rgba(252,110,32,0.25);
+  border-radius: 20px;
+  padding: 5px 12px;
+  margin-bottom: 20px;
+  letter-spacing: 0.06em;
+}
+.badge-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--orange);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+.headline {
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 14px;
+}
+.headline span { color: var(--orange); }
+
+.headline-sub {
+  font-size: 14px;
+  color: var(--sub);
+  line-height: 1.65;
+  max-width: 400px;
+  margin-bottom: 32px;
+}
+
+/* Mission stats strip */
+.mission-stats {
+  display: flex;
+  gap: 24px;
+}
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.stat-val {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.stat-val.orange { color: var(--orange); }
+.stat-val.cream  { color: var(--cream); }
+.stat-lbl {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.stat-divider {
+  width: 0.5px;
+  background: var(--border-md);
+  align-self: stretch;
+}
+
+/* Orbital stats under chart */
+.orbital-strip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: rgba(0,0,0,0.3);
+  border: 0.5px solid var(--border-md);
+  border-radius: var(--r-lg);
+  backdrop-filter: blur(8px);
+}
+.orb-val {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--orange);
+}
+.orb-lbl {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+.orb-sep { width: 0.5px; background: var(--border-md); height: 28px; }
+
+.left-bottom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 4px;
+}
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--sub);
+}
+.status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+/* ── RIGHT PANEL ── */
+.right-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 56px;
+  position: relative;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-header {
+  margin-bottom: 32px;
+}
+.login-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.login-sub {
+  font-size: 13px;
+  color: var(--sub);
+  line-height: 1.5;
+}
+
+/* Form */
+.form-group {
+  margin-bottom: 16px;
+}
+.form-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 7px;
+}
+.form-input-wrap {
+  position: relative;
+}
+.form-input {
+  width: 100%;
+  background: var(--card);
+  border: 0.5px solid var(--border-md);
+  border-radius: var(--r-md);
+  padding: 12px 14px 12px 42px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  letter-spacing: 0.01em;
+}
+.form-input:focus {
+  border-color: var(--orange);
+  background: var(--card2);
+}
+.form-input::placeholder { color: var(--muted); }
+.form-input-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+  transition: color 0.2s;
+}
+.form-input:focus ~ .form-input-icon,
+.form-input-wrap:focus-within .form-input-icon { color: var(--orange); }
+.form-input-icon svg { display: block; }
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.15s;
+  display: flex;
+  align-items: center;
+}
+.password-toggle:hover { color: var(--sub); }
+
+
+
+/* Submit button */
+.btn-login {
+  width: 100%;
+  background: var(--orange);
+  color: #1A1A1A;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 14px;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: opacity 0.15s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.btn-login:hover { opacity: 0.92; }
+.btn-login:active { transform: scale(0.99); }
+.btn-login.loading { opacity: 0.7; pointer-events: none; }
+
+/* Loading spinner */
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-top-color: #1A1A1A;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.login-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.login-forgot {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: color 0.15s;
+  cursor: pointer;
+}
+.login-forgot:hover { color: var(--sub); }
+.login-secure {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+}
+
+/* Divider */
+.form-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 18px;
+}
+.form-divider-line {
+  flex: 1;
+  height: 0.5px;
+  background: var(--border);
+}
+.form-divider-txt {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.07em;
+}
+
+/* Error state */
+.form-error {
+  display: none;
+  background: rgba(208,64,48,0.1);
+  border: 0.5px solid rgba(208,64,48,0.25);
+  border-radius: var(--r-md);
+  padding: 10px 13px;
+  font-size: 12px;
+  color: #E07060;
+  margin-bottom: 16px;
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
+}
+.form-error.show { display: block; }
+
+/* Success overlay */
+.success-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s;
+}
+.success-overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+.success-icon {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: rgba(75,184,122,0.12);
+  border: 1.5px solid rgba(75,184,122,0.3);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+  animation: successPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes successPop { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+.success-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.success-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+.success-bar {
+  width: 200px;
+  height: 3px;
+  background: var(--border-md);
+  border-radius: 2px;
+  margin-top: 28px;
+  overflow: hidden;
+}
+.success-bar-fill {
+  height: 100%;
+  background: var(--success);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 2s linear;
+}
+
+/* Input valid indicator */
+.form-input.valid { border-color: rgba(75,184,122,0.4); }
+.form-input.invalid { border-color: rgba(208,64,48,0.4); }
+
+/* ══ DASHBOARD HIDDEN INITIALLY ══ */
+#dashboard-wrap { display: none; }
+
+/* ── LOGOUT BTN ── */
+.sidebar-logout {
+  border-top: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.sidebar-logout:hover { background: rgba(208,64,48,0.06); }
+.logout-icon-wrap {
+  width: var(--sidebar-collapsed);
+  min-width: var(--sidebar-collapsed);
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--muted);
+  transition: color 0.15s;
+}
+.sidebar-logout:hover .logout-icon-wrap { color: var(--danger); }
+.logout-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.18s 0.06s, transform 0.18s 0.06s, color 0.15s;
+  white-space: nowrap;
+}
+.sidebar:hover .logout-label { opacity: 1; transform: translateX(0); }
+.sidebar-logout:hover .logout-label { color: var(--danger); }
+
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  canvas { display: block; }
+}
+
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link" style="position:absolute;top:-100px;left:16px;background:var(--orange);color:#1A1A1A;padding:8px 16px;border-radius:8px;font-family:var(--mono);font-size:12px;font-weight:700;z-index:9999;text-decoration:none;transition:top 0.2s" onfocus="this.style.top='16px'" onblur="this.style.top='-100px'">Pular para o conteúdo</a>
+
+<!-- GRAIN overlay (global) -->
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- LOGIN SCREEN                                -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="login-screen" style="position:fixed;inset:0;z-index:10000;display:flex;">
+<!-- ── LEFT PANEL ── -->
+<div class="left-panel">
+  <canvas id="bg-canvas" role="img" aria-label="Mapa orbital animado — posição de Terra e Marte"></canvas>
+
+  <div class="left-content">
+    <!-- Logo -->
+    <div class="left-top">
+      <div class="logo-mark">M</div>
+      <div>
+        <div class="logo-text">MarsLink</div>
+        <div class="logo-tag">// sistema de controle · missão ares-1</div>
+      </div>
+    </div>
+
+    <!-- Center copy -->
+    <div class="left-center">
+      <div class="mission-badge">
+        <div class="badge-dot"></div>
+        MISSÃO ARES-1 · DIA 47 · AO VIVO
+      </div>
+
+      <div class="headline">
+        Controle<br>da <span>fronteira</span><br>do espaço.
+      </div>
+
+      <div class="headline-sub">
+        Plataforma integrada de comunicação e coordenação para missões em ambiente de latência extrema. Projetada para Marte. Aplicada na Terra.
+      </div>
+
+      <div class="mission-stats">
+        <div class="stat-item">
+          <div class="stat-val orange">18</div>
+          <div class="stat-lbl">min delay</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-val cream">47</div>
+          <div class="stat-lbl">dias em rota</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-val">4</div>
+          <div class="stat-lbl">tripulantes</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-val" style="color:var(--success)">OK</div>
+          <div class="stat-lbl">status vital</div>
+        </div>
+      </div>
+
+      <!-- Orbital strip -->
+      <div class="orbital-strip" style="margin-top:28px">
+        <div>
+          <div class="orb-val" id="login-dist">148 M</div>
+          <div class="orb-lbl">Terra–Marte km</div>
+        </div>
+        <div class="orb-sep"></div>
+        <div>
+          <div class="orb-val" id="login-delay">18 min</div>
+          <div class="orb-lbl">delay do sinal</div>
+        </div>
+        <div class="orb-sep"></div>
+        <div style="flex:1">
+          <canvas id="mini-orbital" role="img" aria-label="Mini mapa orbital" width="160" height="36" style="display:block;width:100%"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom status -->
+    <div class="left-bottom">
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        Sistemas operacionais
+      </div>
+      <div style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--muted)">v2.4.1 · ARES-1</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RIGHT PANEL ── -->
+<div class="right-panel">
+  <div class="login-card">
+
+    <div class="login-header">
+      <div class="login-title">Acesso ao sistema</div>
+      <div class="login-sub">Entre com suas credenciais para acessar o painel de controle da Missão Ares-1.</div>
+    </div>
+
+    <!-- Mission code chip -->
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(252,110,32,0.07);border:0.5px solid rgba(252,110,32,0.22);border-radius:var(--r-md);margin-bottom:22px">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--orange);animation:pulse 1.5s ease-in-out infinite;flex-shrink:0"></div>
+      <div style="flex:1">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--orange);letter-spacing:0.1em">MISSÃO ARES-1 · CONTROLE TERRA</div>
+        <div style="font-size:11px;color:var(--sub);margin-top:2px">Painel restrito a operadores autorizados</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.06em">DIA 47</div>
+    </div>
+
+    <!-- Email -->
+    <div class="form-group">
+      <label class="form-label" for="email">E-mail operacional</label>
+      <div class="form-input-wrap">
+        <input class="form-input" id="email" type="email" placeholder="operador@nasa-ares1.gov" autocomplete="username" oninput="validateEmail(this)">
+        <div class="form-input-icon">
+          <svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mission code -->
+    <div class="form-group">
+      <label class="form-label" for="mission-code">Código de missão</label>
+      <div class="form-input-wrap">
+        <input class="form-input" id="mission-code" type="text" placeholder="000000" maxlength="12" autocomplete="off" oninput="validateMissionCode(this)" style="letter-spacing:0.12em" inputmode="numeric" pattern="[0-9]*">
+        <div class="form-input-icon">
+          <svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="form-group" style="margin-bottom:20px">
+      <label class="form-label" for="password">Senha de acesso</label>
+      <div class="form-input-wrap">
+        <input class="form-input" id="password" type="password" placeholder="••••••••••••" autocomplete="current-password" oninput="validatePassword(this)">
+        <div class="form-input-icon">
+          <svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <button class="password-toggle" onclick="togglePassword()" type="button" aria-label="Mostrar ou ocultar senha" id="pw-toggle">
+          <svg aria-hidden="true" focusable="false" id="eye-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="form-error" id="form-error">Credenciais inválidas. Verifique seu e-mail e senha.</div>
+
+    <!-- Submit -->
+    <button class="btn-login" id="login-btn" onclick="handleLogin()">
+      <span id="btn-text">Acessar sistema</span>
+      <div class="spinner" id="btn-spinner"></div>
+      <svg aria-hidden="true" focusable="false" id="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+
+    <div class="login-footer">
+      <span class="login-forgot" onclick="showForgot()">Esqueceu o acesso?</span>
+      <div class="login-secure">
+        <svg aria-hidden="true" focusable="false" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Conexão cifrada · AES-256
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Success overlay -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-icon">
+    <svg aria-hidden="true" focusable="false" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4BB87A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <div class="success-title">Acesso autorizado</div>
+  <div class="success-sub" id="success-msg">CARREGANDO PAINEL DE CONTROLE...</div>
+  <div class="success-bar">
+    <div class="success-bar-fill" id="success-fill"></div>
+  </div>
+</div>
+</div>
+
+<!-- Dashboard wrapper (shown after login) -->
+<div id="dashboard-wrap" style="display:none;width:100%;min-height:100vh">
+<div class="toast" id="toast">Instrução enfileirada · em trânsito para Marte</div>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div style="display:flex;align-items:center;width:100%;overflow:hidden;padding:0">
+      <div class="logo-icon-wrap" style="flex-shrink:0">
+        <div class="logo-icon">M</div>
+      </div>
+      <div class="logo-text-wrap" style="padding-left:10px;padding-right:0">
+        <div class="logo-tag">// controle terra</div>
+        <div class="logo-name">MarsLink</div>
+        <div class="logo-sub">MISSÃO ARES-1</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-mission">
+    <div class="mission-icon-wrap" style="flex-shrink:0">
+      <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div class="mission-text-wrap">
+      <div class="mission-day">DIA 47 · FASE B</div>
+      <div class="mission-status">4 tripulantes · turno A ativo</div>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-section-lbl">Principal</div>
+    <div role="button" tabindex="0" class="nav-item active" onclick="goTo('w-overview')" aria-label="Visão geral">
+      <div class="nav-icon-wrap"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></div>
+      <span class="nav-label">Visão geral</span>
+    </div>
+    <div role="button" tabindex="0" class="nav-item" onclick="goTo('w-comms')" aria-label="Comunicações">
+      <div class="nav-icon-wrap"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <span class="nav-label">Comunicações</span>
+      <span class="nav-badge">3</span>
+    </div>
+    <div role="button" tabindex="0" class="nav-item" onclick="goTo('w-crew')" aria-label="Tripulação">
+      <div class="nav-icon-wrap"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <span class="nav-label">Tripulação</span>
+      <span class="nav-badge warn">!</span>
+    </div>
+    <div role="button" tabindex="0" class="nav-item" onclick="goTo('w-tasks')" aria-label="Tarefas">
+      <div class="nav-icon-wrap"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg></div>
+      <span class="nav-label">Tarefas</span>
+    </div>
+    <div role="button" tabindex="0" class="nav-item" onclick="goTo('w-logs')" aria-label="Logs da missão">
+      <div class="nav-icon-wrap"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/></svg></div>
+      <span class="nav-label">Logs da missão</span>
+    </div>
+  </div>
+
+  <div class="sidebar-delay">
+    <div class="delay-icon-wrap">
+      <div class="delay-pulse"></div>
+    </div>
+    <div class="delay-text-wrap">
+      <div class="delay-val">18 min</div>
+      <div class="delay-info">delay atual · sinal 75%</div>
+    </div>
+  </div>
+
+  <div role="button" tabindex="0" class="sidebar-logout" onclick="handleLogout()">
+    <div class="logout-icon-wrap">
+      <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </div>
+    <span class="logout-label">Sair do sistema</span>
+  </div>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">Visão geral da missão</div>
+      <div class="topbar-meta">09:47 UTC · Missão Ares-1 · Dia 47</div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-pill tp-green"><span class="pill-dot"></span>Janela aberta</div>
+      <div class="topbar-pill tp-orange"><span class="pill-dot"></span>Delay 18 min</div>
+      <div class="operator-avatar">MT</div>
+    </div>
+  </div>
+
+  <div class="content-area" id="main-content" role="main">
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- W1: VISÃO GERAL                           -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="screen active" id="w-overview">
+
+      <!-- Linha 1: 4 stat cards -->
+      <div class="grid-4">
+        <div class="card accent grain">
+          <div class="card-label orange">// janela</div>
+          <div class="card-value orange sm">Aberta</div>
+          <div class="card-sub">sinal 75% · fecha em ~4 min</div>
+          <div class="prog-bar" style="margin-top:10px"><div class="prog-fill" style="width:75%;background:var(--orange)"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-label">// delay atual</div>
+          <div class="stat-big"><span class="stat-num">18</span><span class="stat-unit">min</span></div>
+          <div class="card-sub">Marte → Terra · 148 M km</div>
+        </div>
+        <div class="card">
+          <div class="card-label">// msgs na fila</div>
+          <div class="stat-big"><span class="stat-num" style="color:var(--orange)">3</span></div>
+          <div class="card-sub">aguardando próxima janela</div>
+        </div>
+        <div class="card">
+          <div class="card-label">// missão</div>
+          <div class="stat-big"><span class="stat-num" style="color:var(--cream)">47</span><span class="stat-unit">dias</span></div>
+          <div class="card-sub">Fase B · turno A ativo</div>
+        </div>
+      </div>
+
+      <!-- Linha 2: histórico mensagens | orbital (tall) -->
+      <div style="display:grid;grid-template-columns:1fr 420px;gap:12px;margin-bottom:12px;align-items:stretch">
+
+        <!-- Coluna esquerda: histórico recente -->
+        <div class="card">
+          <div class="card-head-row" style="margin-bottom:12px">
+            <div class="card-title">Últimas comunicações</div>
+            <button class="btn-ghost" onclick="goTo('w-comms')" aria-label="Comunicações" style="font-size:10px;padding:5px 10px">Ver todas →</button>
+          </div>
+
+          <!-- MSG 1 -->
+          <div class="ov-msg-row">
+            <div class="msg-avatar">CS</div>
+            <div class="ov-msg-body">
+              <div class="ov-msg-head">
+                <div class="ov-msg-author">
+                  <span class="ov-name">Cmdt. Silva</span>
+                  <span class="ov-role">Comandante</span>
+                </div>
+                <span class="ov-time">09:13 TM</span>
+              </div>
+              <div class="ov-msg-preview">"Filtro CO₂ operando normalmente após verificação manual. Aguardando confirmação do protocolo 7-B."</div>
+              <div class="ov-msg-tags">
+                <span class="pill green"><span class="pill-dot"></span>entregue</span>
+                <span class="pill gray" style="font-size:8px">↑ enviada pela nave</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- MSG 2 -->
+          <div class="ov-msg-row">
+            <div class="msg-avatar" style="background:rgba(75,184,122,0.12);color:#4BB87A;border-color:rgba(75,184,122,0.2)">CT</div>
+            <div class="ov-msg-body">
+              <div class="ov-msg-head">
+                <div class="ov-msg-author">
+                  <span class="ov-name">Controle Terra</span>
+                  <span class="ov-role">Operações</span>
+                </div>
+                <span class="ov-time">09:31 TM</span>
+              </div>
+              <div class="ov-msg-preview">"Protocolo 7-B aprovado. Podem continuar operações normais. Relatório de status em 2h."</div>
+              <div class="ov-msg-tags">
+                <span class="pill green"><span class="pill-dot"></span>ack recebido</span>
+                <span class="pill orange" style="font-size:8px">↓ recebida da nave</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- MSG 3 -->
+          <div class="ov-msg-row">
+            <div class="msg-avatar">EP</div>
+            <div class="ov-msg-body">
+              <div class="ov-msg-head">
+                <div class="ov-msg-author">
+                  <span class="ov-name">Eng. Park</span>
+                  <span class="ov-role">Engenheiro</span>
+                </div>
+                <span class="ov-time">08:55 TM</span>
+              </div>
+              <div class="ov-msg-preview">"Leituras do reator dentro do normal. Telemetria de navegação enviada no bundle anterior."</div>
+              <div class="ov-msg-tags">
+                <span class="pill orange"><span class="pill-dot"></span>em trânsito</span>
+                <span class="pill gray" style="font-size:8px">↑ enviada pela nave</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- MSG 4 -->
+          <div class="ov-msg-row" style="opacity:0.5">
+            <div class="msg-avatar" style="background:rgba(75,184,122,0.12);color:#4BB87A;border-color:rgba(75,184,122,0.2)">CT</div>
+            <div class="ov-msg-body">
+              <div class="ov-msg-head">
+                <div class="ov-msg-author">
+                  <span class="ov-name">Controle Terra</span>
+                  <span class="ov-role">Operações</span>
+                </div>
+                <span class="ov-time">22:10 TM · dia 46</span>
+              </div>
+              <div class="ov-msg-preview">"Dados recebidos. Boa noite à tripulação. Próxima janela: 09:30 TM."</div>
+              <div class="ov-msg-tags">
+                <span class="pill green"><span class="pill-dot"></span>entregue</span>
+                <span class="pill gray" style="font-size:8px">↓ recebida da nave</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna direita: mapa orbital tall -->
+        <div class="card grain" style="display:flex;flex-direction:column">
+          <div class="card-head-row" style="margin-bottom:10px">
+            <div class="card-title">Posição orbital</div>
+            <div style="display:flex;gap:20px">
+              <div style="text-align:right">
+                <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--orange)" id="dash-dist">—</div>
+                <div style="font-family:var(--mono);font-size:8px;color:var(--muted)">M km</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--orange)" id="dash-delay">—</div>
+                <div style="font-family:var(--mono);font-size:8px;color:var(--muted)">min</div>
+              </div>
+            </div>
+          </div>
+          <canvas id="orb-canvas-dash" role="img" aria-label="Mapa orbital — posição de Terra e Marte em tempo real" style="border-radius:8px;background:var(--surface);border:0.5px solid var(--border);width:100%;display:block;flex:1;min-height:0"></canvas>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.06em">PRÓXIMA JANELA</span>
+              <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text)">~14:30 TM</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.06em">EM</span>
+              <span class="pill orange" style="font-size:9px"><span class="pill-dot"></span>4h 43min</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.06em">DIA DA MISSÃO</span>
+              <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--cream)">47</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linha 3: tarefas por tripulante | sinais vitais -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;align-items:stretch">
+
+        <!-- Tarefas por tripulante -->
+        <div class="card">
+          <div class="card-head-row" style="margin-bottom:12px">
+            <div class="card-title">Tarefas do turno · dia 47</div>
+            <button class="btn-ghost" onclick="goTo('w-tasks')" aria-label="Tarefas" style="font-size:10px;padding:5px 10px">Gerenciar →</button>
+          </div>
+
+          <!-- Cmdt. Silva -->
+          <div class="crew-task-block">
+            <div class="crew-task-header">
+              <div class="msg-avatar" style="width:24px;height:24px;font-size:9px;flex-shrink:0">CS</div>
+              <span class="crew-task-name">Cmdt. Silva</span>
+              <span class="crew-task-role">Comandante</span>
+              <span class="pill gray" style="font-size:8px;margin-left:auto">1/2</span>
+            </div>
+            <div class="task-row" style="padding:6px 0">
+              <div class="task-check-box"></div>
+              <div class="prio-dot" style="background:var(--danger)"></div>
+              <div class="task-name" style="font-size:11px">Verificar filtro de CO₂</div>
+            </div>
+            <div class="task-row" style="padding:6px 0">
+              <div class="task-check-box done"></div>
+              <div class="prio-dot" style="background:var(--warn)"></div>
+              <div class="task-name done" style="font-size:11px">Registro de leitura dos painéis</div>
+            </div>
+          </div>
+
+          <!-- Eng. Park -->
+          <div class="crew-task-block">
+            <div class="crew-task-header">
+              <div class="msg-avatar" style="width:24px;height:24px;font-size:9px;flex-shrink:0">EP</div>
+              <span class="crew-task-name">Eng. Park</span>
+              <span class="crew-task-role">Engenheiro</span>
+              <span class="pill green" style="font-size:8px;margin-left:auto">2/2</span>
+            </div>
+            <div class="task-row" style="padding:6px 0">
+              <div class="task-check-box done"></div>
+              <div class="prio-dot" style="background:var(--danger)"></div>
+              <div class="task-name done" style="font-size:11px">Check telemetria de navegação</div>
+            </div>
+            <div class="task-row" style="padding:6px 0">
+              <div class="task-check-box done"></div>
+              <div class="prio-dot" style="background:var(--warn)"></div>
+              <div class="task-name done" style="font-size:11px">Inspeção de selantes módulo B</div>
+            </div>
+          </div>
+
+          <!-- Dra. Santos -->
+          <div class="crew-task-block">
+            <div class="crew-task-header">
+              <div class="msg-avatar" style="width:24px;height:24px;font-size:9px;flex-shrink:0;border-color:rgba(232,160,32,0.4)">DS</div>
+              <span class="crew-task-name">Dra. Santos</span>
+              <span class="crew-task-role">Médica</span>
+              <span class="pill warn" style="font-size:8px;margin-left:auto">0/1</span>
+            </div>
+            <div class="task-row" style="padding:6px 0">
+              <div class="task-check-box"></div>
+              <div class="prio-dot" style="background:var(--warn)"></div>
+              <div class="task-name" style="font-size:11px">Check saúde da tripulação</div>
+            </div>
+          </div>
+
+          <!-- Piloto Osei -->
+          <div class="crew-task-block" style="border-bottom:none">
+            <div class="crew-task-header">
+              <div class="msg-avatar" style="width:24px;height:24px;font-size:9px;flex-shrink:0">PO</div>
+              <span class="crew-task-name">Piloto Osei</span>
+              <span class="crew-task-role">Piloto</span>
+              <span class="pill gray" style="font-size:8px;margin-left:auto">0/1</span>
+            </div>
+            <div class="task-row" style="padding:6px 0">
+              <div class="task-check-box"></div>
+              <div class="prio-dot" style="background:var(--muted)"></div>
+              <div class="task-name" style="font-size:11px">Atualizar inventário de suprimentos</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sinais vitais -->
+        <div class="card">
+          <div class="card-head-row" style="margin-bottom:4px">
+            <div class="card-title">Sinais vitais</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">14 min atrás</span>
+              <button class="btn-ghost" onclick="goTo('w-crew')" aria-label="Tripulação" style="font-size:10px;padding:5px 10px">Detalhes →</button>
+            </div>
+          </div>
+
+          <div class="alert-banner ab-warn" style="padding:7px 10px;margin-bottom:10px;font-size:11px">
+            <svg aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Dra. Santos — FC 89 bpm · humor: Cansada
+          </div>
+
+          <!-- Vitals table -->
+          <div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr auto;gap:6px 10px;align-items:center">
+            <!-- Header -->
+            <div></div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.08em;text-align:center">FC</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.08em;text-align:center">O₂</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.08em;text-align:center">Temp</div>
+            <div></div>
+
+            <!-- Silva -->
+            <div style="display:flex;align-items:center;gap:6px">
+              <div class="msg-avatar" style="width:24px;height:24px;font-size:9px;flex-shrink:0">CS</div>
+              <span style="font-size:11px;color:var(--sub);white-space:nowrap">Silva</span>
+            </div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--success);text-align:center">72<span style="font-size:8px;color:var(--muted)">bpm</span></div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--success);text-align:center">98<span style="font-size:8px;color:var(--muted)">%</span></div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;text-align:center">36.8<span style="font-size:8px;color:var(--muted)">°</span></div>
+            <span class="pill green" style="font-size:8px;padding:2px 6px">ok</span>
+
+            <!-- Park -->
+            <div style="display:flex;align-items:center;gap:6px">
+              <div class="msg-avatar" style="width:24px;height:24px;font-size:9px;flex-shrink:0">EP</div>
+              <span style="font-size:11px;color:var(--sub);white-space:nowrap">Park</span>
+            </div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--success);text-align:center">81<span style="font-size:8px;color:var(--muted)">bpm</span></div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--success);text-align:center">97<span style="font-size:8px;color:var(--muted)">%</span></div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;text-align:center">37.1<span style="font-size:8px;color:var(--muted)">°</span></div>
+            <span class="pill green" style="font-size:8px;padding:2px 6px">ok</span>
+
+            <!-- Santos -->
+            <div style="display:flex;align-items:center;gap:6px">
+              <div class="msg-avatar" style="width:24px;height:24px;font-size:9px;flex-shrink:0;border-color:rgba(232,160,32,0.4)">DS</div>
+              <span style="font-size:11px;color:var(--sub);white-space:nowrap">Santos</span>
+            </div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--warn);text-align:center">89<span style="font-size:8px;color:var(--muted)">bpm</span></div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--success);text-align:center">96<span style="font-size:8px;color:var(--muted)">%</span></div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;text-align:center">37.4<span style="font-size:8px;color:var(--muted)">°</span></div>
+            <span class="pill warn" style="font-size:8px;padding:2px 6px">!</span>
+
+            <!-- Osei -->
+            <div style="display:flex;align-items:center;gap:6px">
+              <div class="msg-avatar" style="width:24px;height:24px;font-size:9px;flex-shrink:0">PO</div>
+              <span style="font-size:11px;color:var(--sub);white-space:nowrap">Osei</span>
+            </div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--success);text-align:center">66<span style="font-size:8px;color:var(--muted)">bpm</span></div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--success);text-align:center">99<span style="font-size:8px;color:var(--muted)">%</span></div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;text-align:center">36.6<span style="font-size:8px;color:var(--muted)">°</span></div>
+            <span class="pill green" style="font-size:8px;padding:2px 6px">ok</span>
+          </div>
+
+          <!-- ECG strip -->
+          <div style="margin-top:14px;border-top:0.5px solid var(--border);padding-top:12px">
+            <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.08em;margin-bottom:8px">FREQUÊNCIA CARDÍACA · AO VIVO</div>
+            <canvas id="ov-ecg-canvas" role="img" aria-label="Monitores de ECG da tripulação" height="52" style="width:100%;border-radius:6px;background:var(--surface);border:0.5px solid var(--border);display:block"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+        <!-- ══════════════════════════════════════════ -->
+    <!-- W2: COMUNICAÇÕES                          -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="screen" id="w-comms">
+
+      <!-- Linha 1: estatísticas do dia em cards -->
+      <div class="grid-4" style="margin-bottom:12px">
+        <div class="card">
+          <div class="card-label">// msgs enviadas hoje</div>
+          <div class="stat-big"><span class="stat-num">7</span></div>
+          <div class="card-sub">Terra → Nave</div>
+        </div>
+        <div class="card">
+          <div class="card-label">// msgs recebidas hoje</div>
+          <div class="stat-big"><span class="stat-num">4</span></div>
+          <div class="card-sub">Nave → Terra</div>
+        </div>
+        <div class="card">
+          <div class="card-label">// tempo médio</div>
+          <div class="stat-big"><span class="stat-num" style="color:var(--orange)">18</span><span class="stat-unit">min</span></div>
+          <div class="card-sub">delay por mensagem</div>
+        </div>
+        <div class="card accent-green">
+          <div class="card-label">// falhas de entrega</div>
+          <div class="stat-big"><span class="stat-num" style="color:var(--success)">0</span></div>
+          <div class="card-sub">todas entregues ✓</div>
+        </div>
+      </div>
+
+      <!-- Linha 2: janela | fila saída | fila chegada -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;align-items:stretch">
+
+        <!-- Janela de comunicação -->
+        <div class="card accent grain" style="display:flex;flex-direction:column;gap:10px">
+          <div class="card-label orange">// janela de comunicação</div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div class="card-value orange sm">Aberta</div>
+              <div class="card-sub" style="margin-top:4px">fecha em ~4 min</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-family:var(--mono);font-size:38px;font-weight:700;color:var(--orange);line-height:1">18</div>
+              <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.1em">MIN DELAY</div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.06em">QUALIDADE DO SINAL</span>
+              <span style="font-family:var(--mono);font-size:9px;font-weight:700;color:var(--orange)">75%</span>
+            </div>
+            <div class="prog-bar"><div class="prog-fill" style="width:75%;background:var(--orange)"></div></div>
+          </div>
+          <div style="border-top:0.5px solid var(--border);padding-top:10px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.06em">PRÓXIMA JANELA</span>
+              <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text)">~14:30 TM</span>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.06em">EM</span>
+              <span class="pill orange" style="font-size:9px"><span class="pill-dot"></span>4h 43min</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila de saída (Terra → Nave) -->
+        <div class="card" style="display:flex;flex-direction:column">
+          <div class="card-head-row" style="margin-bottom:10px">
+            <div class="card-title">Fila de saída</div>
+            <span class="pill orange"><span class="pill-dot"></span>3 aguardando</span>
+          </div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.08em;margin-bottom:8px">TERRA → NAVE · PRÓXIMA JANELA</div>
+
+          <div class="ov-msg-row" style="padding:8px 0">
+            <div class="msg-avatar" style="background:rgba(75,184,122,0.12);color:#4BB87A;border-color:rgba(75,184,122,0.2);width:28px;height:28px;font-size:9px">CT</div>
+            <div class="ov-msg-body">
+              <div class="ov-msg-head">
+                <div class="ov-msg-author">
+                  <span class="ov-name" style="font-size:12px">MSG-2031-0850</span>
+                </div>
+              </div>
+              <div class="ov-msg-preview" style="font-size:10px">Instrução médica · Dra. Santos</div>
+              <div class="ov-msg-tags" style="margin-top:4px">
+                <span class="pill orange" style="font-size:8px"><span class="pill-dot"></span>alta</span>
+                <span class="pill gray" style="font-size:8px">↑ saída</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ov-msg-row" style="padding:8px 0">
+            <div class="msg-avatar" style="background:rgba(75,184,122,0.12);color:#4BB87A;border-color:rgba(75,184,122,0.2);width:28px;height:28px;font-size:9px">CT</div>
+            <div class="ov-msg-body">
+              <div class="ov-msg-head">
+                <div class="ov-msg-author">
+                  <span class="ov-name" style="font-size:12px">MSG-2031-0851</span>
+                </div>
+              </div>
+              <div class="ov-msg-preview" style="font-size:10px">Dados telemetria · Todos</div>
+              <div class="ov-msg-tags" style="margin-top:4px">
+                <span class="pill gray" style="font-size:8px">normal</span>
+                <span class="pill gray" style="font-size:8px">↑ saída</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ov-msg-row" style="padding:8px 0;border-bottom:none">
+            <div class="msg-avatar" style="background:rgba(75,184,122,0.12);color:#4BB87A;border-color:rgba(75,184,122,0.2);width:28px;height:28px;font-size:9px">CT</div>
+            <div class="ov-msg-body">
+              <div class="ov-msg-head">
+                <div class="ov-msg-author">
+                  <span class="ov-name" style="font-size:12px">MSG-2031-0852</span>
+                </div>
+              </div>
+              <div class="ov-msg-preview" style="font-size:10px">Atualização protocolo · Todos</div>
+              <div class="ov-msg-tags" style="margin-top:4px">
+                <span class="pill gray" style="font-size:8px">normal</span>
+                <span class="pill gray" style="font-size:8px">↑ saída</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila de chegada (Nave → Terra) -->
+        <div class="card" style="display:flex;flex-direction:column">
+          <div class="card-head-row" style="margin-bottom:10px">
+            <div class="card-title">Fila de chegada</div>
+            <span class="pill warn"><span class="pill-dot"></span>2 em trânsito</span>
+          </div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.08em;margin-bottom:8px">NAVE → TERRA · EM TRÂNSITO</div>
+
+          <div class="ov-msg-row" style="padding:8px 0">
+            <div class="msg-avatar" style="width:28px;height:28px;font-size:9px">EP</div>
+            <div class="ov-msg-body">
+              <div class="ov-msg-head">
+                <div class="ov-msg-author">
+                  <span class="ov-name" style="font-size:12px">Eng. Park</span>
+                  <span class="ov-role">Engenheiro</span>
+                </div>
+              </div>
+              <div class="ov-msg-preview" style="font-size:10px">Leituras do reator dentro do normal...</div>
+              <div class="ov-msg-tags" style="margin-top:4px">
+                <span class="pill orange" style="font-size:8px"><span class="pill-dot"></span>em trânsito</span>
+                <span class="pill gray" style="font-size:8px">↓ chegada · ~8 min</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ov-msg-row" style="padding:8px 0;border-bottom:none">
+            <div class="msg-avatar" style="width:28px;height:28px;font-size:9px">CS</div>
+            <div class="ov-msg-body">
+              <div class="ov-msg-head">
+                <div class="ov-msg-author">
+                  <span class="ov-name" style="font-size:12px">Cmdt. Silva</span>
+                  <span class="ov-role">Comandante</span>
+                </div>
+              </div>
+              <div class="ov-msg-preview" style="font-size:10px">Status EVA do módulo B confirmado...</div>
+              <div class="ov-msg-tags" style="margin-top:4px">
+                <span class="pill orange" style="font-size:8px"><span class="pill-dot"></span>em trânsito</span>
+                <span class="pill gray" style="font-size:8px">↓ chegada · ~14 min</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty state hint -->
+          <div style="margin-top:auto;padding-top:12px;border-top:0.5px solid var(--border)">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.05em">PRÓXIMA JANELA EM</div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);margin-top:2px">4h 43min</div>
+            <div style="font-size:11px;color:var(--sub);margin-top:2px">mais mensagens esperadas</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linha 3: Nova instrução -->
+      <div class="card">
+        <div class="card-head-row" style="margin-bottom:14px">
+          <div class="card-title">Nova instrução para a nave</div>
+          <span class="pill orange" style="font-size:9px"><span class="pill-dot"></span>janela aberta · delay 18 min</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 280px;gap:14px;align-items:start">
+
+          <!-- Left: textarea + mídia -->
+          <div>
+            <div class="compose-box">
+              <div class="compose-header">
+                <span class="compose-lbl">MENSAGEM</span>
+                <div style="display:flex;gap:6px" id="comms-prio-wrap">
+                  <span class="pill orange" id="cp-high" onclick="setComposePrio('high')" style="cursor:pointer"><span class="pill-dot"></span>alta</span>
+                  <span class="pill gray" id="cp-normal" onclick="setComposePrio('normal')" style="cursor:pointer">normal</span>
+                </div>
+              </div>
+              <textarea class="compose-ta" id="ctrl-compose" placeholder="Redija a instrução ou resposta para a tripulação..." style="min-height:90px"></textarea>
+            </div>
+
+            <!-- Mídia -->
+            <div style="margin-top:8px;background:var(--card);border:0.5px solid var(--border-md);border-radius:var(--r-lg);overflow:hidden">
+              <div style="padding:9px 14px;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.07em">ANEXAR MÍDIA (OPCIONAL)</span>
+                <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">imagem ou vídeo</span>
+              </div>
+              <div style="padding:10px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <button class="comms-media-btn" onclick="document.getElementById('comms-img-input').click()">
+                  <svg aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  Imagem
+                </button>
+                <button class="comms-media-btn" onclick="document.getElementById('comms-vid-input').click()">
+                  <svg aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                  Vídeo
+                </button>
+                <div id="comms-media-previews" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+              </div>
+              <input type="file" id="comms-img-input" accept="image/*" style="display:none" onchange="handleCommsMedia(this,'img')">
+              <input type="file" id="comms-vid-input" accept="video/*" style="display:none" onchange="handleCommsMedia(this,'vid')">
+            </div>
+          </div>
+
+          <!-- Right: destinatário + enviar -->
+          <div style="display:flex;flex-direction:column;gap:10px">
+
+            <!-- Destinatário -->
+            <div style="background:var(--card);border:0.5px solid var(--border-md);border-radius:var(--r-lg);overflow:hidden">
+              <div style="padding:9px 14px;border-bottom:0.5px solid var(--border)">
+                <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.07em">DESTINATÁRIO</span>
+              </div>
+              <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px">
+
+                <!-- Todos -->
+                <div role="button" tabindex="0" class="recipient-row active" id="rec-all" onclick="toggleRecipient('all')">
+                  <div class="rec-check" id="rcheck-all">
+                    <svg aria-hidden="true" focusable="false" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <div class="msg-avatar" style="width:22px;height:22px;font-size:8px;flex-shrink:0;border-color:rgba(252,110,32,0.4);background:rgba(252,110,32,0.1);color:var(--orange)">
+                    <svg aria-hidden="true" focusable="false" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </div>
+                  <span class="rec-name">Todos</span>
+                  <span class="rec-role">tripulação completa</span>
+                </div>
+
+                <div style="height:0.5px;background:var(--border);margin:2px 0"></div>
+
+                <!-- CS -->
+                <div role="button" tabindex="0" class="recipient-row" id="rec-cs" onclick="toggleRecipient('cs')">
+                  <div class="rec-check" id="rcheck-cs"></div>
+                  <div class="msg-avatar" style="width:22px;height:22px;font-size:8px;flex-shrink:0">CS</div>
+                  <span class="rec-name">Cmdt. Silva</span>
+                  <span class="rec-role">Comandante</span>
+                </div>
+
+                <!-- EP -->
+                <div role="button" tabindex="0" class="recipient-row" id="rec-ep" onclick="toggleRecipient('ep')">
+                  <div class="rec-check" id="rcheck-ep"></div>
+                  <div class="msg-avatar" style="width:22px;height:22px;font-size:8px;flex-shrink:0">EP</div>
+                  <span class="rec-name">Eng. Park</span>
+                  <span class="rec-role">Engenheiro</span>
+                </div>
+
+                <!-- DS -->
+                <div role="button" tabindex="0" class="recipient-row" id="rec-ds" onclick="toggleRecipient('ds')">
+                  <div class="rec-check" id="rcheck-ds"></div>
+                  <div class="msg-avatar" style="width:22px;height:22px;font-size:8px;flex-shrink:0;border-color:rgba(232,160,32,0.35)">DS</div>
+                  <span class="rec-name">Dra. Santos</span>
+                  <span class="rec-role">Médica</span>
+                </div>
+
+                <!-- PO -->
+                <div role="button" tabindex="0" class="recipient-row" id="rec-po" onclick="toggleRecipient('po')">
+                  <div class="rec-check" id="rcheck-po"></div>
+                  <div class="msg-avatar" style="width:22px;height:22px;font-size:8px;flex-shrink:0">PO</div>
+                  <span class="rec-name">Piloto Osei</span>
+                  <span class="rec-role">Piloto</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Enviar -->
+            <button class="btn-primary" onclick="sendInstruction()" style="width:100%;padding:12px">Enviar instrução</button>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;line-height:1.5">
+              será enviada na próxima<br>janela de comunicação
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+        <!-- ══════════════════════════════════════════ -->
+    <!-- W3: TRIPULAÇÃO                            -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="screen" id="w-crew">
+
+      <div class="alert-banner ab-warn" style="margin-bottom:16px">
+        <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Alerta: Dra. Santos com FC acima do normal (89 bpm) e humor registrado como "Cansada". Dados com 14 min de atraso.
+      </div>
+
+      <div class="grid-2">
+        <!-- Silva -->
+        <div class="card accent-green">
+          <div class="card-head-row">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="crew-av">CS</div>
+              <div>
+                <div class="card-title">Cmdt. Silva</div>
+                <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">COMANDANTE · TURNO A</div>
+              </div>
+            </div>
+            <span class="pill green"><span class="pill-dot"></span>normal</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+            <div class="card" style="padding:10px;background:var(--card2);border:none">
+              <div class="card-label" style="margin-bottom:4px">FC</div>
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--success)">72 <span style="font-size:10px;color:var(--muted)">bpm</span></div>
+            </div>
+            <div class="card" style="padding:10px;background:var(--card2);border:none">
+              <div class="card-label" style="margin-bottom:4px">O₂</div>
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--success)">98 <span style="font-size:10px;color:var(--muted)">%</span></div>
+            </div>
+            <div class="card" style="padding:10px;background:var(--card2);border:none">
+              <div class="card-label" style="margin-bottom:4px">Temp</div>
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text)">36.8<span style="font-size:10px;color:var(--muted)">°C</span></div>
+            </div>
+          </div>
+          <canvas id="cv-ecg-0" role="img" aria-label="ECG do Cmdt. Silva" width="340" height="48" style="width:100%;border-radius:6px;background:var(--card2)"></canvas>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+            <span class="pill gray">Humor: Focado</span>
+            <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">dados 14 min atrás</span>
+          </div>
+        </div>
+
+        <!-- Park -->
+        <div class="card accent-green">
+          <div class="card-head-row">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="crew-av">EP</div>
+              <div>
+                <div class="card-title">Eng. Park</div>
+                <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">ENGENHEIRO · TURNO A</div>
+              </div>
+            </div>
+            <span class="pill green"><span class="pill-dot"></span>normal</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+            <div class="card" style="padding:10px;background:var(--card2);border:none">
+              <div class="card-label" style="margin-bottom:4px">FC</div>
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--success)">81 <span style="font-size:10px;color:var(--muted)">bpm</span></div>
+            </div>
+            <div class="card" style="padding:10px;background:var(--card2);border:none">
+              <div class="card-label" style="margin-bottom:4px">O₂</div>
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--success)">97 <span style="font-size:10px;color:var(--muted)">%</span></div>
+            </div>
+            <div class="card" style="padding:10px;background:var(--card2);border:none">
+              <div class="card-label" style="margin-bottom:4px">Temp</div>
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text)">37.1<span style="font-size:10px;color:var(--muted)">°C</span></div>
+            </div>
+          </div>
+          <canvas id="cv-ecg-1" role="img" aria-label="ECG do Eng. Park" width="340" height="48" style="width:100%;border-radius:6px;background:var(--card2)"></canvas>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+            <span class="pill gray">Humor: Focado</span>
+            <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">dados 14 min atrás</span>
+          </div>
+        </div>
+
+        <!-- Santos -->
+        <div class="card" style="border-color:rgba(232,160,32,0.3)">
+          <div class="card-head-row">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="crew-av" style="border-color:rgba(232,160,32,0.4)">DS</div>
+              <div>
+                <div class="card-title">Dra. Santos</div>
+                <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">MÉDICA · TURNO B</div>
+              </div>
+            </div>
+            <span class="pill warn"><span class="pill-dot"></span>atenção</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+            <div class="card" style="padding:10px;background:var(--card2);border:0.5px solid rgba(232,160,32,0.2)">
+              <div class="card-label" style="margin-bottom:4px">FC</div>
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--warn)">89 <span style="font-size:10px;color:var(--muted)">bpm</span></div>
+            </div>
+            <div class="card" style="padding:10px;background:var(--card2);border:none">
+              <div class="card-label" style="margin-bottom:4px">O₂</div>
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--success)">96 <span style="font-size:10px;color:var(--muted)">%</span></div>
+            </div>
+            <div class="card" style="padding:10px;background:var(--card2);border:none">
+              <div class="card-label" style="margin-bottom:4px">Temp</div>
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text)">37.4<span style="font-size:10px;color:var(--muted)">°C</span></div>
+            </div>
+          </div>
+          <canvas id="cv-ecg-2" role="img" aria-label="ECG da Dra. Santos" width="340" height="48" style="width:100%;border-radius:6px;background:var(--card2)"></canvas>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+            <span class="pill warn">Humor: Cansada</span>
+            <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">dados 14 min atrás</span>
+          </div>
+        </div>
+
+        <!-- Osei -->
+        <div class="card accent-green">
+          <div class="card-head-row">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="crew-av">PO</div>
+              <div>
+                <div class="card-title">Piloto Osei</div>
+                <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">PILOTO · TURNO B</div>
+              </div>
+            </div>
+            <span class="pill green"><span class="pill-dot"></span>normal</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+            <div class="card" style="padding:10px;background:var(--card2);border:none">
+              <div class="card-label" style="margin-bottom:4px">FC</div>
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--success)">66 <span style="font-size:10px;color:var(--muted)">bpm</span></div>
+            </div>
+            <div class="card" style="padding:10px;background:var(--card2);border:none">
+              <div class="card-label" style="margin-bottom:4px">O₂</div>
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--success)">99 <span style="font-size:10px;color:var(--muted)">%</span></div>
+            </div>
+            <div class="card" style="padding:10px;background:var(--card2);border:none">
+              <div class="card-label" style="margin-bottom:4px">Temp</div>
+              <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text)">36.6<span style="font-size:10px;color:var(--muted)">°C</span></div>
+            </div>
+          </div>
+          <canvas id="cv-ecg-3" role="img" aria-label="ECG do Piloto Osei" width="340" height="48" style="width:100%;border-radius:6px;background:var(--card2)"></canvas>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+            <span class="pill gray">Humor: Tranquilo</span>
+            <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">dados 14 min atrás</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- W4: TAREFAS                               -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="screen" id="w-tasks">
+
+      <!-- Linha 1: stat cards -->
+      <div class="grid-4" style="margin-bottom:12px">
+        <div class="card">
+          <div class="card-label">// total de tarefas</div>
+          <div class="stat-big"><span class="stat-num">8</span></div>
+          <div class="card-sub">dia 47 · todos os turnos</div>
+        </div>
+        <div class="card">
+          <div class="card-label">// pendentes</div>
+          <div class="stat-big"><span class="stat-num" style="color:var(--orange)">4</span></div>
+          <div class="card-sub">aguardando execução</div>
+        </div>
+        <div class="card accent-green">
+          <div class="card-label">// concluídas</div>
+          <div class="stat-big"><span class="stat-num" style="color:var(--success)">4</span></div>
+          <div class="card-sub">50% do dia · ↑ 2 vs ontem</div>
+        </div>
+        <div class="card">
+          <div class="card-label">// progresso geral</div>
+          <div class="stat-big"><span class="stat-num">50</span><span class="stat-unit">%</span></div>
+          <div class="prog-bar" style="margin-top:10px"><div class="prog-fill" style="width:50%;background:var(--success)"></div></div>
+        </div>
+      </div>
+
+      <!-- Linha 2: lista por responsável | cadastro de tarefa -->
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:12px;align-items:start">
+
+        <!-- Lista por responsável -->
+        <div style="display:flex;flex-direction:column;gap:10px">
+
+          <!-- Cmdt. Silva -->
+          <div class="card">
+            <div class="crew-task-header" style="margin-bottom:10px">
+              <div class="msg-avatar" style="width:30px;height:30px;font-size:10px;flex-shrink:0">CS</div>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">Cmdt. Silva</div>
+                <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">COMANDANTE · TURNO A</div>
+              </div>
+              <span class="pill orange" style="margin-left:auto;font-size:9px">1/2 pendentes</span>
+            </div>
+            <div class="task-row">
+              <div class="task-check-box"></div>
+              <div class="prio-dot" style="background:var(--danger)"></div>
+              <div style="flex:1">
+                <div class="task-name">Verificar filtro de CO₂</div>
+                <div class="task-meta">ALTA · Bay 3 · Turno A</div>
+              </div>
+              <span class="pill red" style="font-size:8px">pendente</span>
+            </div>
+            <div class="task-row">
+              <div class="task-check-box done"></div>
+              <div class="prio-dot" style="background:var(--warn)"></div>
+              <div style="flex:1">
+                <div class="task-name done">Registro de leitura dos painéis</div>
+                <div class="task-meta">MÉDIA · Concluída 08:42</div>
+              </div>
+              <span class="pill green" style="font-size:8px">feita</span>
+            </div>
+          </div>
+
+          <!-- Eng. Park -->
+          <div class="card">
+            <div class="crew-task-header" style="margin-bottom:10px">
+              <div class="msg-avatar" style="width:30px;height:30px;font-size:10px;flex-shrink:0">EP</div>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">Eng. Park</div>
+                <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">ENGENHEIRO · TURNO A</div>
+              </div>
+              <span class="pill green" style="margin-left:auto;font-size:9px">2/2 concluídas</span>
+            </div>
+            <div class="task-row">
+              <div class="task-check-box done"></div>
+              <div class="prio-dot" style="background:var(--danger)"></div>
+              <div style="flex:1">
+                <div class="task-name done">Check telemetria de navegação</div>
+                <div class="task-meta">ALTA · Concluída 07:55</div>
+              </div>
+              <span class="pill green" style="font-size:8px">feita</span>
+            </div>
+            <div class="task-row">
+              <div class="task-check-box done"></div>
+              <div class="prio-dot" style="background:var(--warn)"></div>
+              <div style="flex:1">
+                <div class="task-name done">Inspeção de selantes módulo B</div>
+                <div class="task-meta">MÉDIA · Concluída 07:15</div>
+              </div>
+              <span class="pill green" style="font-size:8px">feita</span>
+            </div>
+          </div>
+
+          <!-- Dra. Santos -->
+          <div class="card" style="border-color:rgba(232,160,32,0.22)">
+            <div class="crew-task-header" style="margin-bottom:10px">
+              <div class="msg-avatar" style="width:30px;height:30px;font-size:10px;flex-shrink:0;border-color:rgba(232,160,32,0.4)">DS</div>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">Dra. Santos</div>
+                <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">MÉDICA · TURNO B</div>
+              </div>
+              <span class="pill warn" style="margin-left:auto;font-size:9px">1/2 pendentes</span>
+            </div>
+            <div class="task-row">
+              <div class="task-check-box done"></div>
+              <div class="prio-dot" style="background:var(--danger)"></div>
+              <div style="flex:1">
+                <div class="task-name done">Check saúde da tripulação</div>
+                <div class="task-meta">ALTA · Concluída 07:30</div>
+              </div>
+              <span class="pill green" style="font-size:8px">feita</span>
+            </div>
+            <div class="task-row">
+              <div class="task-check-box"></div>
+              <div class="prio-dot" style="background:var(--warn)"></div>
+              <div style="flex:1">
+                <div class="task-name">Relatório de saúde semanal</div>
+                <div class="task-meta">MÉDIA · Turno B</div>
+              </div>
+              <span class="pill warn" style="font-size:8px">pendente</span>
+            </div>
+          </div>
+
+          <!-- Piloto Osei -->
+          <div class="card">
+            <div class="crew-task-header" style="margin-bottom:10px">
+              <div class="msg-avatar" style="width:30px;height:30px;font-size:10px;flex-shrink:0">PO</div>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">Piloto Osei</div>
+                <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">PILOTO · TURNO B</div>
+              </div>
+              <span class="pill orange" style="margin-left:auto;font-size:9px">2/2 pendentes</span>
+            </div>
+            <div class="task-row">
+              <div class="task-check-box"></div>
+              <div class="prio-dot" style="background:var(--warn)"></div>
+              <div style="flex:1">
+                <div class="task-name">Atualizar inventário de suprimentos</div>
+                <div class="task-meta">MÉDIA · Quando possível</div>
+              </div>
+              <span class="pill gray" style="font-size:8px">pendente</span>
+            </div>
+            <div class="task-row">
+              <div class="task-check-box"></div>
+              <div class="prio-dot" style="background:var(--muted)"></div>
+              <div style="flex:1">
+                <div class="task-name">Verificação sistemas de navegação</div>
+                <div class="task-meta">BAIXA · Turno B</div>
+              </div>
+              <span class="pill gray" style="font-size:8px">pendente</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Cadastro de nova tarefa -->
+        <div style="position:sticky;top:0;display:flex;flex-direction:column;gap:10px">
+
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px">Nova tarefa</div>
+
+            <!-- Título da tarefa -->
+            <div class="task-field-label">TÍTULO</div>
+            <input class="task-input" type="text" placeholder="Descreva a tarefa..." aria-label="Título da tarefa">
+
+            <!-- Responsável -->
+            <div class="task-field-label" style="margin-top:12px">RESPONSÁVEL</div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div role="button" tabindex="0" class="recipient-row active" id="tr-all" onclick="toggleTaskRec('all')">
+                <div class="rec-check active" id="trcheck-all">
+                  <svg aria-hidden="true" focusable="false" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="msg-avatar" style="width:20px;height:20px;font-size:7px;flex-shrink:0;border-color:rgba(252,110,32,0.4);background:rgba(252,110,32,0.1);color:var(--orange)">
+                  <svg aria-hidden="true" focusable="false" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <span class="rec-name" style="font-size:11px">Todos</span>
+              </div>
+              <div role="button" tabindex="0" class="recipient-row" id="tr-cs" onclick="toggleTaskRec('cs')">
+                <div class="rec-check" id="trcheck-cs"></div>
+                <div class="msg-avatar" style="width:20px;height:20px;font-size:7px;flex-shrink:0">CS</div>
+                <span class="rec-name" style="font-size:11px">Cmdt. Silva</span>
+              </div>
+              <div role="button" tabindex="0" class="recipient-row" id="tr-ep" onclick="toggleTaskRec('ep')">
+                <div class="rec-check" id="trcheck-ep"></div>
+                <div class="msg-avatar" style="width:20px;height:20px;font-size:7px;flex-shrink:0">EP</div>
+                <span class="rec-name" style="font-size:11px">Eng. Park</span>
+              </div>
+              <div role="button" tabindex="0" class="recipient-row" id="tr-ds" onclick="toggleTaskRec('ds')">
+                <div class="rec-check" id="trcheck-ds"></div>
+                <div class="msg-avatar" style="width:20px;height:20px;font-size:7px;flex-shrink:0;border-color:rgba(232,160,32,0.35)">DS</div>
+                <span class="rec-name" style="font-size:11px">Dra. Santos</span>
+              </div>
+              <div role="button" tabindex="0" class="recipient-row" id="tr-po" onclick="toggleTaskRec('po')">
+                <div class="rec-check" id="trcheck-po"></div>
+                <div class="msg-avatar" style="width:20px;height:20px;font-size:7px;flex-shrink:0">PO</div>
+                <span class="rec-name" style="font-size:11px">Piloto Osei</span>
+              </div>
+            </div>
+
+            <!-- Prioridade -->
+            <div class="task-field-label" style="margin-top:12px">PRIORIDADE</div>
+            <div style="display:flex;gap:6px">
+              <button class="task-prio-btn active" id="tp-high" onclick="setTaskPrio('high')">
+                <div class="prio-dot" style="background:var(--danger)"></div>Alta
+              </button>
+              <button class="task-prio-btn" id="tp-med" onclick="setTaskPrio('med')">
+                <div class="prio-dot" style="background:var(--warn)"></div>Média
+              </button>
+              <button class="task-prio-btn" id="tp-low" onclick="setTaskPrio('low')">
+                <div class="prio-dot" style="background:var(--muted)"></div>Baixa
+              </button>
+            </div>
+
+            <!-- Data / Turno -->
+            <div class="task-field-label" style="margin-top:12px">QUANDO</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="task-when-btn active" id="tw-now" onclick="setTaskWhen('now')">Hoje</button>
+              <button class="task-when-btn" id="tw-a" onclick="setTaskWhen('a')">Turno A</button>
+              <button class="task-when-btn" id="tw-b" onclick="setTaskWhen('b')">Turno B</button>
+              <button class="task-when-btn" id="tw-date" onclick="setTaskWhen('date')">Data</button>
+            </div>
+            <input class="task-input" type="date" aria-label="Data de execução da tarefa" id="task-date-input" style="display:none;margin-top:6px">
+
+            <!-- Mídia -->
+            <div class="task-field-label" style="margin-top:12px">ANEXAR MÍDIA (OPCIONAL)</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="comms-media-btn" style="font-size:9px;padding:5px 10px" onclick="document.getElementById('task-img-input').click()">
+                <svg aria-hidden="true" focusable="false" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                Imagem
+              </button>
+              <button class="comms-media-btn" style="font-size:9px;padding:5px 10px" onclick="document.getElementById('task-vid-input').click()">
+                <svg aria-hidden="true" focusable="false" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                Vídeo
+              </button>
+            </div>
+            <div id="task-media-previews" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"></div>
+            <input type="file" id="task-img-input" accept="image/*" style="display:none" onchange="handleTaskMedia(this,'img')">
+            <input type="file" id="task-vid-input" accept="video/*" style="display:none" onchange="handleTaskMedia(this,'vid')">
+
+            <button class="btn-primary" onclick="submitTask()" style="width:100%;margin-top:16px;padding:11px">Delegar tarefa</button>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;margin-top:6px;line-height:1.5">será enviada na próxima<br>janela de comunicação</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+        <!-- ══════════════════════════════════════════ -->
+    <!-- W5: LOGS DA MISSÃO                        -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="screen" id="w-logs">
+
+      <!-- Linha 1: stat cards com carinha animada -->
+      <div class="grid-4" style="margin-bottom:12px">
+
+        <!-- Logs registrados -->
+        <div class="card">
+          <div class="card-label">// logs registrados</div>
+          <div class="stat-big"><span class="stat-num">3</span><span class="stat-unit">/4</span></div>
+          <div class="card-sub">dia 46 · Osei pendente</div>
+        </div>
+
+        <!-- Humor geral com carinha animada -->
+        <div class="card" style="display:flex;flex-direction:column;gap:0">
+          <div class="card-label">// humor geral</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+            <canvas id="mood-face-canvas" role="img" aria-label="Indicador de humor geral da tripulação" width="56" height="56" style="display:block;flex-shrink:0"></canvas>
+            <div>
+              <div style="font-size:16px;font-weight:600;color:var(--text)">Estável</div>
+              <div class="card-sub" style="margin-top:2px">tendência neutra · dia 46</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertas de humor -->
+        <div class="card" style="border-color:rgba(232,160,32,0.25)">
+          <div class="card-label">// alertas de humor</div>
+          <div class="stat-big"><span class="stat-num" style="color:var(--warn)">1</span></div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+            <div class="msg-avatar" style="width:20px;height:20px;font-size:8px;border-color:rgba(232,160,32,0.4)">DS</div>
+            <span class="card-sub">Dra. Santos · Cansada</span>
+          </div>
+        </div>
+
+        <!-- Cobertura de registros -->
+        <div class="card">
+          <div class="card-label">// cobertura</div>
+          <div class="stat-big"><span class="stat-num">75</span><span class="stat-unit">%</span></div>
+          <div class="prog-bar" style="margin-top:10px"><div class="prog-fill" style="width:75%;background:var(--success)"></div></div>
+          <div class="card-sub" style="margin-top:5px">3 de 4 tripulantes</div>
+        </div>
+      </div>
+
+      <!-- Linha 2: histórico + sidebar (gráfico + resumo) -->
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:12px;align-items:start">
+
+        <!-- Registros anteriores com busca e filtros -->
+        <div class="card">
+          <div class="card-head-row" style="margin-bottom:12px">
+            <div class="card-title">Registros de bordo</div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">dia 46 · 3 logs</span>
+            </div>
+          </div>
+
+          <!-- Search + filters -->
+          <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+            <!-- Search input -->
+            <div style="position:relative;flex:1;min-width:160px">
+              <svg aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input class="task-input" id="log-search" type="text" placeholder="Pesquisar nos registros..." style="padding-left:30px;font-size:11px" oninput="filterLogs()">
+            </div>
+
+            <!-- Filtro: tripulante -->
+            <select class="log-filter-select" id="filter-crew" onchange="filterLogs()">
+              <option value="all">Todos tripulantes</option>
+              <option value="cs">Cmdt. Silva</option>
+              <option value="ep">Eng. Park</option>
+              <option value="ds">Dra. Santos</option>
+              <option value="po">Piloto Osei</option>
+            </select>
+
+            <!-- Filtro: dia -->
+            <select class="log-filter-select" id="filter-day" onchange="filterLogs()">
+              <option value="all">Todos os dias</option>
+              <option value="46">Dia 46</option>
+              <option value="45">Dia 45</option>
+              <option value="44">Dia 44</option>
+            </select>
+
+            <!-- Filtro: humor -->
+            <select class="log-filter-select" id="filter-mood" onchange="filterLogs()">
+              <option value="all">Todos os humores</option>
+              <option value="focado">Focado</option>
+              <option value="tranquilo">Tranquilo</option>
+              <option value="motivado">Motivado</option>
+              <option value="cansado">Cansado</option>
+              <option value="ansioso">Ansioso</option>
+            </select>
+          </div>
+
+          <!-- Log entries -->
+          <div id="log-entries-list">
+
+            <div class="log-row" data-crew="cs" data-day="46" data-mood="tranquilo">
+              <div class="log-head">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="crew-av" style="width:28px;height:28px;font-size:9px">CS</div>
+                  <div class="log-author">Cmdt. Silva</div>
+                  <span class="pill gray" style="font-size:8px">Tranquilo</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="log-day">DIA 46 · 21:14 TM</div>
+                </div>
+              </div>
+              <div class="log-text">"Dia produtivo. Experimento de biologia completado com sucesso. Equipe em bom estado. Janela de comunicação foi estável a maior parte do dia."</div>
+              <div class="log-media-row">
+                <div class="log-thumb"><canvas id="dl-0" role="img" aria-label="Foto do log de missão" width="52" height="52"></canvas></div>
+                <div class="log-thumb"><canvas id="dl-1" role="img" aria-label="Foto do log de missão" width="52" height="52"></canvas></div>
+                <div class="log-thumb"><canvas id="dl-2" role="img" aria-label="Foto do log de missão" width="52" height="52"></canvas></div>
+              </div>
+            </div>
+
+            <div class="log-row" data-crew="ep" data-day="46" data-mood="focado">
+              <div class="log-head">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="crew-av" style="width:28px;height:28px;font-size:9px">EP</div>
+                  <div class="log-author">Eng. Park</div>
+                  <span class="pill gray" style="font-size:8px">Focado</span>
+                </div>
+                <div class="log-day">DIA 46 · 20:55 TM</div>
+              </div>
+              <div class="log-text">"Manutenção do sistema de propulsão concluída. Leituras normais. Sinto que estamos num bom ritmo como equipe."</div>
+              <div class="log-media-row">
+                <div class="log-thumb"><canvas id="dl-3" role="img" aria-label="Foto do log de missão" width="52" height="52"></canvas></div>
+                <div class="log-thumb" style="position:relative">
+                  <canvas id="dl-4" role="img" aria-label="Vídeo do log de missão" width="52" height="52"></canvas>
+                  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center">
+                    <svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.9)" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;padding-left:4px"><span style="font-family:var(--mono);font-size:9px;color:var(--muted)">00:42</span></div>
+              </div>
+            </div>
+
+            <div class="log-row" data-crew="ds" data-day="46" data-mood="cansado">
+              <div class="log-head">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="crew-av" style="width:28px;height:28px;font-size:9px">DS</div>
+                  <div class="log-author">Dra. Santos</div>
+                  <span class="pill warn" style="font-size:8px">Cansada</span>
+                </div>
+                <div class="log-day">DIA 46 · 20:30 TM</div>
+              </div>
+              <div class="log-text">"Noite curta — alarme falso no módulo médico às 03h. Todos bem. Preciso de um dia mais tranquilo amanhã."</div>
+            </div>
+
+            <div class="log-row" data-crew="po" data-day="44" data-mood="motivado">
+              <div class="log-head">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="crew-av" style="width:28px;height:28px;font-size:9px">PO</div>
+                  <div class="log-author">Piloto Osei</div>
+                  <span class="pill gray" style="font-size:8px">Motivado</span>
+                </div>
+                <div class="log-day">DIA 44 · 19:10 TM</div>
+              </div>
+              <div class="log-text">"Primeira EVA do mês concluída. Registrei tudo em foto. A superfície marciana ao amanhecer é algo difícil de descrever em palavras."</div>
+              <div class="log-media-row">
+                <div class="log-thumb"><canvas id="dl-5" width="52" height="52"></canvas></div>
+                <div class="log-thumb"><canvas id="dl-6" width="52" height="52"></canvas></div>
+                <div style="display:flex;align-items:center;padding:0 4px">
+                  <span class="pill gray" style="font-size:8px">+5 fotos</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty state -->
+            <div id="log-empty-state" style="display:none">
+              <div class="empty-state">
+                <svg aria-hidden="true" focusable="false" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" style="color:var(--muted)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Nenhum registro encontrado para esse filtro
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Sidebar: gráfico + resumo -->
+        <div style="display:flex;flex-direction:column;gap:10px">
+
+          <!-- Gráfico de tendência -->
+          <div class="card">
+            <div class="card-head-row" style="margin-bottom:12px">
+              <div class="card-title">Estado emocional</div>
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted)">7 dias</span>
+            </div>
+            <canvas id="mood-chart" role="img" aria-label="Gráfico de estado emocional da tripulação" width="300" height="160" style="width:100%"></canvas>
+            <!-- Legend -->
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border)">
+              <div style="display:flex;align-items:center;gap:5px"><div style="width:14px;height:2px;background:#4BB87A;border-radius:1px"></div><span style="font-family:var(--mono);font-size:9px;color:var(--muted)">Silva</span></div>
+              <div style="display:flex;align-items:center;gap:5px"><div style="width:14px;height:2px;background:#4BB87A;border-radius:1px;opacity:0.6"></div><span style="font-family:var(--mono);font-size:9px;color:var(--muted)">Park</span></div>
+              <div style="display:flex;align-items:center;gap:5px"><div style="width:14px;height:2px;background:#E8A020;border-radius:1px"></div><span style="font-family:var(--mono);font-size:9px;color:var(--muted)">Santos</span></div>
+              <div style="display:flex;align-items:center;gap:5px"><div style="width:14px;height:2px;background:#4BB87A;border-radius:1px;opacity:0.4"></div><span style="font-family:var(--mono);font-size:9px;color:var(--muted)">Osei</span></div>
+            </div>
+          </div>
+
+          <!-- Resumo do dia -->
+          <div class="card">
+            <div class="card-title" style="margin-bottom:12px">Resumo · dia 46</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span class="card-sub">Logs registrados</span>
+                <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text)">3/4</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span class="card-sub">Humor predominante</span>
+                <span class="pill gray" style="font-size:9px">Focado</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span class="card-sub">Alertas</span>
+                <span class="pill warn" style="font-size:9px">1 · Santos</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span class="card-sub">Fotos registradas</span>
+                <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text)">8</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span class="card-sub">Vídeos</span>
+                <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text)">1</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+
+
+  </div><!-- content-area -->
+</div><!-- main -->
+</div>
+
+<script>
+/* ── NAVIGATION ── */
+const titles = {
+  'w-overview': 'Visão geral da missão',
+  'w-comms':    'Comunicações',
+  'w-crew':     'Monitoramento da tripulação',
+  'w-tasks':    'Gestão de tarefas',
+  'w-logs':     'Log histórico da missão',
+};
+
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => { n.classList.remove('active'); n.removeAttribute('aria-current'); });
+  document.getElementById(id).classList.add('active');
+  const navItem = document.querySelector(`[onclick="goTo('${id}')"]`);
+  if (navItem) navItem.classList.add('active'); navItem.setAttribute('aria-current', 'page');
+  document.getElementById('topbar-title').textContent = titles[id] || '';
+  if (id === 'w-crew') setTimeout(drawCrewECGs, 60);
+  if (id === 'w-logs') setTimeout(initLogsScreen, 60);
+  if (id === 'w-overview') { setTimeout(drawOrbital, 60); setTimeout(drawOverviewECG, 80); }
+}
+
+/* ── COMPOSE PRIO ── */
+function setComposePrio(p) {
+  const h = document.getElementById('cp-high');
+  const n = document.getElementById('cp-normal');
+  if (p === 'high') {
+    h.className = 'pill orange'; h.innerHTML = '<span class="pill-dot"></span>alta';
+    n.className = 'pill gray'; n.textContent = 'normal';
+  } else {
+    n.className = 'pill green'; n.innerHTML = '<span class="pill-dot"></span>normal';
+    h.className = 'pill gray'; h.textContent = 'alta';
+  }
+}
+
+/* ── SEND INSTRUCTION ── */
+function sendInstruction() {
+  const ta = document.getElementById('ctrl-compose');
+  const anyRecipient = Object.values(recipients).some(Boolean);
+  if (!ta.value.trim() || !anyRecipient) return;
+  ta.value = '';
+  commsMediaItems.forEach(m => URL.revokeObjectURL(m.url));
+  commsMediaItems = [];
+  renderCommsMediaPreviews();
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+
+/* ── OVERVIEW ECG MULTI-CREW ── */
+let ovEcgAnim = null;
+function drawOverviewECG() {
+  const canvas = document.getElementById('ov-ecg-canvas');
+  if (!canvas) return;
+  if (ovEcgAnim) cancelAnimationFrame(ovEcgAnim);
+  const W = canvas.offsetWidth || 400;
+  canvas.width = W;
+  const H = canvas.height;
+  const ctx = canvas.getContext('2d');
+
+  const tracks = [
+    { bpm: 72, color: '#4BB87A', phase: 0,   label: 'CS' },
+    { bpm: 81, color: '#4BB87A', phase: 1.4, label: 'EP' },
+    { bpm: 89, color: '#E8A020', phase: 2.8, label: 'DS' },
+    { bpm: 66, color: '#4BB87A', phase: 0.7, label: 'PO' },
+  ];
+  const trackH = H / tracks.length;
+
+  function ecgShape(x) {
+    const mod = ((x % 1) + 1) % 1;
+    if (mod < 0.25) return Math.sin(mod / 0.25 * Math.PI) * 0.22;
+    if (mod > 0.40 && mod < 0.44) return (mod - 0.40) / 0.04 * -0.88;
+    if (mod > 0.44 && mod < 0.48) return ((mod - 0.44) / 0.04) * 1.1 - 0.88;
+    if (mod > 0.48 && mod < 0.56) return (1 - (mod - 0.48) / 0.08) * 1.1;
+    if (mod > 0.56 && mod < 0.62) return ((mod - 0.56) / 0.06) * -0.25;
+    if (mod > 0.62 && mod < 0.72) return -0.25 + (mod - 0.62) / 0.1 * 0.25;
+    return 0;
+  }
+
+  let t = 0;
+  function frame() {
+    t += 0.011;
+    ctx.clearRect(0, 0, W, H);
+
+    tracks.forEach((tr, i) => {
+      const yOff = i * trackH + trackH / 2;
+      const amp  = trackH * 0.36;
+      const spd  = tr.bpm / 72;
+
+      // Separator line
+      if (i > 0) {
+        ctx.beginPath();
+        ctx.moveTo(0, i * trackH);
+        ctx.lineTo(W, i * trackH);
+        ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+
+      // Label
+      ctx.fillStyle = tr.color + 'aa';
+      ctx.font = `bold 8px 'Space Mono',monospace`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tr.label, 5, yOff);
+
+      // Glow line
+      ctx.beginPath();
+      for (let px = 22; px < W; px++) {
+        const py = yOff - ecgShape((px - 22) / (W - 22) * spd + t * spd) * amp;
+        px === 22 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.strokeStyle = tr.color + '22';
+      ctx.lineWidth = 5;
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      // Main line
+      ctx.beginPath();
+      for (let px = 22; px < W; px++) {
+        const py = yOff - ecgShape((px - 22) / (W - 22) * spd + t * spd) * amp;
+        px === 22 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.strokeStyle = tr.color;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    });
+
+    ovEcgAnim = requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+
+
+/* ── TASKS SCREEN: RECIPIENTS ── */
+const taskRec = { all: true, cs: false, ep: false, ds: false, po: false };
+const taskIndividuals = ['cs','ep','ds','po'];
+
+function toggleTaskRec(id) {
+  if (id === 'all') {
+    const newState = !taskRec.all;
+    Object.keys(taskRec).forEach(k => taskRec[k] = newState);
+  } else {
+    taskRec[id] = !taskRec[id];
+    taskRec.all = taskIndividuals.every(k => taskRec[k]);
+  }
+  renderTaskRec();
+}
+
+function renderTaskRec() {
+  Object.keys(taskRec).forEach(id => {
+    const row = document.getElementById('tr-' + id);
+    const check = document.getElementById('trcheck-' + id);
+    if (!row || !check) return;
+    if (taskRec[id]) {
+      row.classList.add('active');
+      check.innerHTML = '<svg aria-hidden="true" focusable="false" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    } else {
+      row.classList.remove('active');
+      check.innerHTML = '';
+    }
+  });
+}
+
+/* ── TASKS SCREEN: PRIORITY ── */
+let currentTaskPrio = 'high';
+function setTaskPrio(p) {
+  currentTaskPrio = p;
+  ['high','med','low'].forEach(id => {
+    document.getElementById('tp-' + id)?.classList.toggle('active', id === p);
+  });
+}
+
+/* ── TASKS SCREEN: WHEN ── */
+let currentTaskWhen = 'now';
+function setTaskWhen(w) {
+  currentTaskWhen = w;
+  ['now','a','b','date'].forEach(id => {
+    document.getElementById('tw-' + id)?.classList.toggle('active', id === w);
+  });
+  const dateInput = document.getElementById('task-date-input');
+  if (dateInput) dateInput.style.display = w === 'date' ? 'block' : 'none';
+}
+
+/* ── TASKS SCREEN: MEDIA ── */
+let taskMediaItems = [];
+function handleTaskMedia(input, type) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const id = Date.now();
+  taskMediaItems.push({ id, url, type });
+  renderTaskMedia();
+  input.value = '';
+}
+function removeTaskMedia(id) {
+  const item = taskMediaItems.find(m => m.id === id);
+  if (item) URL.revokeObjectURL(item.url);
+  taskMediaItems = taskMediaItems.filter(m => m.id !== id);
+  renderTaskMedia();
+}
+function renderTaskMedia() {
+  const area = document.getElementById('task-media-previews');
+  if (!area) return;
+  area.innerHTML = taskMediaItems.map(item => {
+    const inner = item.type === 'vid'
+      ? `<video src="${item.url}" style="width:100%;height:100%;object-fit:cover" muted></video><div style="position:absolute;inset:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.9)" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`
+      : `<img src="${item.url}" alt="anexo">`;
+    return `<div class="comms-media-thumb">${inner}<div role="button" tabindex="0" class="comms-thumb-remove" onclick="removeTaskMedia(${item.id})">✕</div></div>`;
+  }).join('');
+}
+
+/* ── TASKS SCREEN: SUBMIT ── */
+function submitTask() {
+  const input = document.querySelector('.task-input[type="text"]');
+  if (!input || !input.value.trim()) return;
+  const anyRec = Object.values(taskRec).some(Boolean);
+  if (!anyRec) return;
+  input.value = '';
+  taskMediaItems.forEach(m => URL.revokeObjectURL(m.url));
+  taskMediaItems = [];
+  renderTaskMedia();
+  const toast = document.getElementById('toast');
+  if (toast) {
+    toast.textContent = 'Tarefa delegada · será enviada na próxima janela';
+    toast.classList.add('show');
+    setTimeout(() => { toast.classList.remove('show'); toast.textContent = 'Instrução enfileirada · em trânsito para Marte'; }, 2800);
+  }
+}
+
+
+/* ── COMMS SCREEN: RECIPIENTS ── */
+const recipients = { all: true, cs: false, ep: false, ds: false, po: false };
+const individuals = ['cs','ep','ds','po'];
+
+function toggleRecipient(id) {
+  if (id === 'all') {
+    const newState = !recipients.all;
+    Object.keys(recipients).forEach(k => recipients[k] = newState);
+  } else {
+    recipients[id] = !recipients[id];
+    recipients.all = individuals.every(k => recipients[k]);
+  }
+  renderRecipients();
+}
+
+function renderRecipients() {
+  Object.keys(recipients).forEach(id => {
+    const row = document.getElementById('rec-' + id);
+    const check = document.getElementById('rcheck-' + id);
+    if (!row || !check) return;
+    if (recipients[id]) {
+      row.classList.add('active');
+      check.innerHTML = '<svg aria-hidden="true" focusable="false" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    } else {
+      row.classList.remove('active');
+      check.innerHTML = '';
+    }
+  });
+}
+
+/* ── COMMS SCREEN: MEDIA ── */
+let commsMediaItems = [];
+function handleCommsMedia(input, type) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const id = Date.now();
+  commsMediaItems.push({ id, url, type, name: file.name });
+  renderCommsMediaPreviews();
+  input.value = '';
+}
+function removeCommsMedia(id) {
+  const item = commsMediaItems.find(m => m.id === id);
+  if (item) URL.revokeObjectURL(item.url);
+  commsMediaItems = commsMediaItems.filter(m => m.id !== id);
+  renderCommsMediaPreviews();
+}
+function renderCommsMediaPreviews() {
+  const area = document.getElementById('comms-media-previews');
+  if (!area) return;
+  area.innerHTML = commsMediaItems.map(item => {
+    const inner = item.type === 'vid'
+      ? `<video src="${item.url}" style="width:100%;height:100%;object-fit:cover" muted></video><div style="position:absolute;inset:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.9)" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`
+      : `<img src="${item.url}" alt="anexo">`;
+    return `<div class="comms-media-thumb">${inner}<div role="button" tabindex="0" class="comms-thumb-remove" onclick="removeCommsMedia(${item.id})">✕</div></div>`;
+  }).join('');
+}
+
+
+
+/* ── LOGS SCREEN: MOOD FACE ── */
+function drawMoodFace() {
+  const canvas = document.getElementById('mood-face-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const R = W * 0.42;
+  let t = 0;
+
+  // mood: 0 = sad, 0.5 = neutral, 1 = happy — current: 0.62 (stable/slightly positive)
+  const targetMood = 0.62;
+  let mood = 0;
+
+  function frame() {
+    t += 0.035;
+    mood = Math.min(mood + 0.015, targetMood);
+    ctx.clearRect(0, 0, W, H);
+
+    // Face circle
+    const faceGrad = ctx.createRadialGradient(cx - R*0.2, cy - R*0.2, 0, cx, cy, R);
+    faceGrad.addColorStop(0, '#FC9040');
+    faceGrad.addColorStop(1, '#C85010');
+    ctx.fillStyle = faceGrad;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.fill();
+
+    // Subtle grain on face
+    ctx.fillStyle = 'rgba(0,0,0,0.06)';
+    for (let g = 0; g < 40; g++) {
+      const gx = cx + (Math.sin(g*127.1)*0.5+0.5)*(R*2) - R;
+      const gy = cy + (Math.cos(g*311.7)*0.5+0.5)*(R*2) - R;
+      const d = Math.sqrt((gx-cx)**2+(gy-cy)**2);
+      if (d < R) { ctx.beginPath(); ctx.arc(gx, gy, 0.8, 0, Math.PI*2); ctx.fill(); }
+    }
+
+    // Eyes — blinking
+    const blinkScale = Math.abs(Math.sin(t * 0.4)) < 0.05 ? 0.08 : 1;
+    const eyeY = cy - R * 0.18;
+    const eyeOff = R * 0.3;
+    [-eyeOff, eyeOff].forEach(ox => {
+      // Eye white
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.beginPath();
+      ctx.ellipse(cx + ox, eyeY, R*0.14, R*0.14*blinkScale, 0, 0, Math.PI*2);
+      ctx.fill();
+      // Pupil
+      const pupilBob = Math.sin(t * 1.1) * R * 0.02;
+      ctx.fillStyle = '#1A1A1A';
+      ctx.beginPath();
+      ctx.arc(cx + ox, eyeY + pupilBob, R*0.07*blinkScale, 0, Math.PI*2);
+      ctx.fill();
+      // Highlight
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.beginPath();
+      ctx.arc(cx + ox - R*0.035, eyeY - R*0.04 + pupilBob, R*0.03, 0, Math.PI*2);
+      ctx.fill();
+    });
+
+    // Mouth — interpolated between sad and happy based on mood
+    const mouthY = cy + R * 0.22;
+    const mouthW = R * 0.44;
+    // curve: mood 0 = frown (cpY below), 0.5 = flat, 1 = smile (cpY above center)
+    const cpOffset = (mood - 0.5) * R * 0.36;
+    ctx.beginPath();
+    ctx.moveTo(cx - mouthW, mouthY);
+    ctx.quadraticCurveTo(cx, mouthY - cpOffset, cx + mouthW, mouthY);
+    ctx.strokeStyle = 'rgba(20,10,5,0.75)';
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Cheeks (only when happy)
+    if (mood > 0.55) {
+      const cheekAlpha = (mood - 0.55) / 0.45 * 0.22;
+      ctx.fillStyle = `rgba(255,120,80,${cheekAlpha})`;
+      [-R*0.45, R*0.45].forEach(ox => {
+        ctx.beginPath();
+        ctx.ellipse(cx + ox, mouthY - R*0.05, R*0.18, R*0.1, 0, 0, Math.PI*2);
+        ctx.fill();
+      });
+    }
+
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+/* ── LOGS SCREEN: FILTER ── */
+function filterLogs() {
+  const search = (document.getElementById('log-search')?.value || '').toLowerCase();
+  const crew = document.getElementById('filter-crew')?.value || 'all';
+  const day = document.getElementById('filter-day')?.value || 'all';
+  const mood = document.getElementById('filter-mood')?.value || 'all';
+
+  const rows = document.querySelectorAll('#log-entries-list .log-row[data-crew]');
+  let visible = 0;
+  rows.forEach(row => {
+    const matchCrew = crew === 'all' || row.dataset.crew === crew;
+    const matchDay  = day  === 'all' || row.dataset.day  === day;
+    const matchMood = mood === 'all' || row.dataset.mood === mood;
+    const matchText = !search || row.textContent.toLowerCase().includes(search);
+    const show = matchCrew && matchDay && matchMood && matchText;
+    row.classList.toggle('hidden', !show);
+    if (show) visible++;
+  });
+  const empty = document.getElementById('log-empty-state');
+  if (empty) empty.style.display = visible === 0 ? 'block' : 'none';
+}
+
+/* ── LOGS INIT ── */
+function initLogsScreen() {
+  drawDashLogs();
+  drawMoodChart();
+  drawMoodFace();
+}
+
+
+/* ── ORBITAL CANVAS ── */
+let orbAnim = null;
+function drawOrbital() {
+  const canvas = document.getElementById('orb-canvas-dash');
+  if (!canvas) return;
+  if (orbAnim) cancelAnimationFrame(orbAnim);
+
+  const cardW = canvas.parentElement.clientWidth - 36;
+  const W = Math.max(cardW, 200);
+  const H = W;
+  canvas.width = W;
+  canvas.height = H;
+
+  const ctx = canvas.getContext('2d');
+  const cx = W / 2, cy = H / 2;
+  const R2 = W * 0.26, R3 = W * 0.38;
+  let angle = 0;
+
+  function frame() {
+    angle += 0.0025;
+    ctx.clearRect(0, 0, W, H);
+
+    // Stars (static, seeded)
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    for (let i = 0; i < 28; i++) {
+      const sx = (Math.sin(i * 127.1) * 0.5 + 0.5) * W;
+      const sy = (Math.cos(i * 311.7) * 0.5 + 0.5) * H;
+      ctx.beginPath(); ctx.arc(sx, sy, 0.6 + (Math.sin(i*53.3)*0.5+0.5)*0.7, 0, Math.PI*2); ctx.fill();
+    }
+
+    // Orbit rings
+    [W*0.14, R2, R3].forEach(r => {
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 0.7; ctx.stroke();
+    });
+
+    // Sun
+    const sunR = W * 0.042;
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, sunR * 2.5);
+    g.addColorStop(0, 'rgba(252,180,60,0.3)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, sunR*2.5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#FC8C20'; ctx.beginPath(); ctx.arc(cx, cy, sunR, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = `bold ${Math.round(W*0.033)}px 'Space Mono',monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText('Sol', cx, cy + sunR + 4);
+
+    // Earth
+    const ex = cx + R2 * Math.cos(angle * 0.72);
+    const ey = cy + R2 * Math.sin(angle * 0.72);
+    const er = W * 0.022;
+    ctx.fillStyle = 'rgba(55,138,221,0.15)'; ctx.beginPath(); ctx.arc(ex, ey, er*2.2, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#378ADD'; ctx.beginPath(); ctx.arc(ex, ey, er, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
+    ctx.font = `bold ${Math.round(W*0.033)}px 'Space Mono',monospace`;
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('Terra', ex, ey - er - 3);
+
+    // Mars
+    const mx = cx + R3 * Math.cos(angle * 0.42 + 1.3);
+    const my = cy + R3 * Math.sin(angle * 0.42 + 1.3);
+    const mr = W * 0.018;
+    ctx.fillStyle = 'rgba(200,80,16,0.15)'; ctx.beginPath(); ctx.arc(mx, my, mr*2.2, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#C85010'; ctx.beginPath(); ctx.arc(mx, my, mr, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#FC6E20';
+    ctx.font = `bold ${Math.round(W*0.033)}px 'Space Mono',monospace`;
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('Marte', mx, my - mr - 3);
+
+    // Animated signal line
+    const dist = Math.sqrt((mx-ex)**2 + (my-ey)**2);
+    ctx.save();
+    ctx.setLineDash([5, 7]);
+    ctx.lineDashOffset = -(angle * 80) % 12;
+    ctx.strokeStyle = 'rgba(252,110,32,0.38)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(mx, my); ctx.stroke();
+    ctx.restore();
+
+    const realDist = Math.round((dist / W) * 520);
+    const delayMin = Math.round(realDist * 0.056);
+    const dd = document.getElementById('dash-dist');
+    const dl = document.getElementById('dash-delay');
+    if (dd) dd.textContent = realDist + ' M';
+    if (dl) dl.textContent = delayMin + ' min';
+
+    orbAnim = requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+/* ── CREW ECG ── */
+const crewData = [
+  { bpm: 72, color: '#4BB87A', phase: 0 },
+  { bpm: 81, color: '#4BB87A', phase: 1.5 },
+  { bpm: 89, color: '#E8A020', phase: 2.8 },
+  { bpm: 66, color: '#4BB87A', phase: 0.9 },
+];
+const ecgAnims = {};
+
+function ecgShape(x) {
+  const mod = ((x % 1) + 1) % 1;
+  if (mod < 0.25) return Math.sin(mod / 0.25 * Math.PI) * 0.2;
+  if (mod > 0.4 && mod < 0.44) return (mod - 0.4) / 0.04 * -0.85;
+  if (mod > 0.44 && mod < 0.48) return ((mod - 0.44) / 0.04) * 1.05 - 0.85;
+  if (mod > 0.48 && mod < 0.56) return (1 - (mod - 0.48) / 0.08) * 1.05;
+  if (mod > 0.56 && mod < 0.62) return ((mod - 0.56) / 0.06) * -0.25;
+  if (mod > 0.62 && mod < 0.72) return -0.25 + (mod - 0.62) / 0.1 * 0.25;
+  return 0;
+}
+
+function drawECG(id, d) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 340;
+  canvas.width = W;
+  const H = canvas.height;
+  let t = d.phase;
+
+  function frame() {
+    if (!document.getElementById(id)) return;
+    t += 0.013;
+    ctx.clearRect(0, 0, W, H);
+
+    // Scrolling ECG
+    ctx.beginPath();
+    for (let px = 0; px < W; px++) {
+      const py = H*0.55 - ecgShape(px/W + t) * (H*0.75);
+      px === 0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+    }
+    ctx.strokeStyle = d.color; ctx.lineWidth = 1.3; ctx.lineJoin = 'round'; ctx.stroke();
+
+    // Glow
+    ctx.beginPath();
+    for (let px = 0; px < W; px++) {
+      const py = H*0.55 - ecgShape(px/W + t) * (H*0.75);
+      px === 0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+    }
+    ctx.strokeStyle = d.color.replace(')', ',0.15)').replace('rgb', 'rgba'); ctx.lineWidth = 5; ctx.stroke();
+
+    // BPM label right
+    ctx.fillStyle = d.color + 'cc';
+    ctx.font = `bold 11px 'Space Mono',monospace`;
+    ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+    ctx.fillText(d.bpm + ' bpm', W - 6, 4);
+
+    ecgAnims[id] = requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+function drawCrewECGs() {
+  Object.keys(ecgAnims).forEach(k => cancelAnimationFrame(ecgAnims[k]));
+  crewData.forEach((d, i) => drawECG(`cv-ecg-${i}`, { ...d, phase: d.phase + i * 0.8 }));
+}
+
+/* ── DASHBOARD LOG PHOTOS ── */
+function drawDashPhoto(id, seed) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const palettes = [
+    { bg:'#2A1510', h1:'#8B3A1A', h2:'#C85010' },
+    { bg:'#1A1008', h1:'#4A2808', h2:'#7A4020' },
+    { bg:'#150E08', h1:'#3A200A', h2:'#6A3515' },
+    { bg:'#0E0A08', h1:'#2A1508', h2:'#503018' },
+    { bg:'#1E100A', h1:'#5A2810', h2:'#8A4020' },
+  ];
+  const p = palettes[seed % palettes.length];
+  ctx.fillStyle = p.bg; ctx.fillRect(0, 0, W, H);
+  const g = ctx.createLinearGradient(0,0,0,H*0.5);
+  g.addColorStop(0, p.h1+'33'); g.addColorStop(1,'transparent');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H*0.5);
+  ctx.fillStyle = p.h2; ctx.fillRect(0, H*0.55, W, H*0.45);
+  ctx.fillStyle = p.h1; ctx.beginPath(); ctx.moveTo(0,H*0.58);
+  for (let i = 0; i <= 6; i++) {
+    const x = (i/6)*W, y = H*(0.52 + (Math.sin(seed*7.3+i*2.1)*0.5+0.5)*0.12);
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  }
+  ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath(); ctx.fill();
+  for (let g2=0;g2<150;g2++) {
+    ctx.fillStyle=`rgba(255,220,180,${Math.random()*0.05})`;
+    ctx.fillRect(Math.random()*W,Math.random()*H,1,1);
+  }
+  ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,H-12,W,12);
+  ctx.fillStyle='rgba(255,220,180,0.6)';
+  ctx.font=`500 6px 'Space Mono',monospace`;
+  ctx.textBaseline='middle'; ctx.textAlign='left';
+  ctx.fillText(`D${44+Math.floor(seed/3)}`,2,H-6);
+}
+
+function drawDashLogs() {
+  for (let i = 0; i < 5; i++) drawDashPhoto(`dl-${i}`, i);
+}
+
+/* ── MOOD CHART ── */
+function drawMoodChart() {
+  const canvas = document.getElementById('mood-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 300;
+  canvas.width = W;
+  const H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const days = ['D41','D42','D43','D44','D45','D46','D47'];
+  const scores = [80,75,85,90,65,72,0]; // 0 = no data yet
+  const crew = ['CS','EP','DS','PO'];
+  const crewScores = [
+    [82,78,88,92,68,75,0],
+    [79,74,83,89,66,70,0],
+    [81,72,82,88,60,65,0],
+    [78,76,87,91,70,78,0],
+  ];
+  const crewColors = ['#4BB87A','#4BB87A','#E8A020','#4BB87A'];
+
+  // Axes
+  const pad = { l:28, r:12, t:10, b:24 };
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+
+  // Grid lines
+  [0,25,50,75,100].forEach(v => {
+    const y = pad.t + cH - (v/100)*cH;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W-pad.r, y);
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 0.5; ctx.stroke();
+    ctx.fillStyle = 'rgba(138,134,128,0.5)';
+    ctx.font = `7px 'Space Mono',monospace`;
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText(v, pad.l - 4, y);
+  });
+
+  // Day labels
+  days.forEach((d, i) => {
+    const x = pad.l + (i / (days.length-1)) * cW;
+    ctx.fillStyle = 'rgba(138,134,128,0.6)';
+    ctx.font = `7px 'Space Mono',monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(d, x, H - pad.b + 5);
+  });
+
+  // Crew lines
+  crewScores.forEach((data, ci) => {
+    ctx.beginPath();
+    let started = false;
+    data.forEach((v, i) => {
+      if (v === 0) return;
+      const x = pad.l + (i/(days.length-1))*cW;
+      const y = pad.t + cH - (v/100)*cH;
+      if (!started) { ctx.moveTo(x,y); started=true; } else ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle = crewColors[ci] + (ci===2 ? 'bb' : '55');
+    ctx.lineWidth = ci===2 ? 1.5 : 1;
+    ctx.lineJoin = 'round'; ctx.stroke();
+
+    // Dots
+    data.forEach((v,i) => {
+      if (v===0) return;
+      const x = pad.l + (i/(days.length-1))*cW;
+      const y = pad.t + cH - (v/100)*cH;
+      ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2);
+      ctx.fillStyle = crewColors[ci]; ctx.fill();
+    });
+  });
+
+  // Legend
+  crew.forEach((c,i) => {
+    const lx = pad.l + i*(cW/4);
+    ctx.fillStyle = crewColors[i];
+    ctx.fillRect(lx, H-pad.b-12, 12, 2);
+    ctx.fillStyle = 'rgba(138,134,128,0.7)';
+    ctx.font = `7px 'Space Mono',monospace`;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(c, lx+15, H-pad.b-11);
+  });
+}
+
+/* ── INIT ── */
+drawOrbital();
+setTimeout(drawOverviewECG, 150);
+setTimeout(drawMoodChart, 200);
+setTimeout(drawDashLogs, 200);
+setTimeout(drawMoodFace, 250);
+
+/* ── ACCESSIBILITY: keyboard for role=button ── */
+document.addEventListener('keydown', function(e) {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.getAttribute('role') === 'button') {
+    e.preventDefault();
+    e.target.click();
+  }
+});
+
+</script>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- LOGIN JS                                   -->
+<!-- ═══════════════════════════════════════════ -->
+<script>
+
+/* ── LOGOUT ── */
+function handleLogout() {
+  const dash = document.getElementById('dashboard-wrap');
+  const login = document.getElementById('login-screen');
+
+  // Fade out dashboard
+  dash.style.transition = 'opacity 0.4s ease';
+  dash.style.opacity = '0';
+
+  setTimeout(() => {
+    // Hide dashboard, show login
+    dash.style.display = 'none';
+    dash.style.opacity = '1';
+    dash.style.transition = '';
+
+    // Reset login fields
+    const emailEl = document.getElementById('email');
+    const codeEl  = document.getElementById('mission-code');
+    const pwEl    = document.getElementById('password');
+    if (emailEl) { emailEl.value = ''; emailEl.className = 'form-input'; }
+    if (codeEl)  { codeEl.value  = ''; codeEl.className  = 'form-input'; }
+    if (pwEl)    { pwEl.value    = ''; pwEl.className    = 'form-input'; pwEl.type = 'password'; }
+    document.getElementById('form-error')?.classList.remove('show');
+
+    // Reset success overlay
+    const overlay = document.getElementById('success-overlay');
+    if (overlay) { overlay.classList.remove('show'); }
+    const fill = document.getElementById('success-fill');
+    if (fill) { fill.style.transition = 'none'; fill.style.width = '0%'; }
+
+    // Show login
+    login.style.display = 'flex';
+    login.style.opacity = '0';
+    login.style.transition = 'opacity 0.4s ease';
+    requestAnimationFrame(() => { login.style.opacity = '1'; });
+
+  }, 400);
+}
+
+/* ── LOGIN → DASHBOARD TRANSITION ── */
+function showDashboard() {
+  const loginScreen = document.getElementById('login-screen');
+  const dashWrap    = document.getElementById('dashboard-wrap');
+  loginScreen.style.transition = 'opacity 0.5s ease';
+  loginScreen.style.opacity = '0';
+  setTimeout(() => {
+    loginScreen.style.display = 'none';
+    dashWrap.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    // Re-init dashboard canvases after reveal
+    setTimeout(() => {
+      drawOrbital();
+      drawMoodFace();
+      drawMoodChart();
+      drawDashLogs();
+      drawOverviewECG();
+    }, 80);
+  }, 500);
+}
+
+/* ── CANVAS BG ORBITAL ── */
+(function drawBgOrbital() {
+  const canvas = document.getElementById('bg-canvas');
+  if (!canvas) return;
+
+  function resize() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const ctx = canvas.getContext('2d');
+  let angle = 0;
+  let W, H;
+
+  function frame() {
+    W = canvas.width; H = canvas.height;
+    angle += 0.0018;
+    ctx.clearRect(0, 0, W, H);
+
+    // Dark base tint
+    ctx.fillStyle = 'rgba(20,14,10,0.72)';
+    ctx.fillRect(0, 0, W, H);
+
+    const cx = W * 0.5, cy = H * 0.45;
+    const maxR = Math.min(W, H) * 0.42;
+
+    // Stars
+    for (let i = 0; i < 60; i++) {
+      const sx = (Math.sin(i * 127.1) * 0.5 + 0.5) * W;
+      const sy = (Math.cos(i * 311.7) * 0.5 + 0.5) * H;
+      const sr = 0.5 + (Math.sin(i * 53.3) * 0.5 + 0.5) * 1.2;
+      const sa = 0.2 + Math.sin(angle * 2 + i) * 0.15;
+      ctx.fillStyle = `rgba(255,255,255,${sa})`;
+      ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Orbit rings
+    [0.22, 0.35, 0.48].forEach((f, idx) => {
+      const r = maxR * f;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.055)';
+      ctx.lineWidth = 0.6; ctx.stroke();
+    });
+
+    // Sun glow
+    const sunR = maxR * 0.06;
+    const sg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sunR * 3);
+    sg.addColorStop(0, 'rgba(252,160,60,0.25)');
+    sg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = sg;
+    ctx.beginPath(); ctx.arc(cx, cy, sunR * 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FC8C20';
+    ctx.beginPath(); ctx.arc(cx, cy, sunR, 0, Math.PI * 2); ctx.fill();
+
+    // Earth
+    const er = maxR * 0.35;
+    const ex = cx + er * Math.cos(angle * 0.7);
+    const ey = cy + er * Math.sin(angle * 0.7);
+    const eg = ctx.createRadialGradient(ex, ey, 0, ex, ey, maxR * 0.03);
+    eg.addColorStop(0, 'rgba(55,138,221,0.3)');
+    eg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = eg;
+    ctx.beginPath(); ctx.arc(ex, ey, maxR * 0.05, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#378ADD';
+    ctx.beginPath(); ctx.arc(ex, ey, maxR * 0.024, 0, Math.PI * 2); ctx.fill();
+
+    // Mars
+    const mr = maxR * 0.48;
+    const mx = cx + mr * Math.cos(angle * 0.42 + 1.3);
+    const my = cy + mr * Math.sin(angle * 0.42 + 1.3);
+    const mgg = ctx.createRadialGradient(mx, my, 0, mx, my, maxR * 0.025);
+    mgg.addColorStop(0, 'rgba(200,80,16,0.25)');
+    mgg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = mgg;
+    ctx.beginPath(); ctx.arc(mx, my, maxR * 0.042, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#C85010';
+    ctx.beginPath(); ctx.arc(mx, my, maxR * 0.018, 0, Math.PI * 2); ctx.fill();
+
+    // Signal line
+    const dist = Math.sqrt((mx - ex) ** 2 + (my - ey) ** 2);
+    const realDist = Math.round((dist / maxR) * 260);
+    const delay = Math.round(realDist * 0.056);
+    ctx.save();
+    ctx.setLineDash([4, 7]);
+    ctx.lineDashOffset = -(angle * 60) % 11;
+    ctx.strokeStyle = 'rgba(252,110,32,0.28)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(mx, my); ctx.stroke();
+    ctx.restore();
+
+    // Labels
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font = `bold ${Math.round(W * 0.016)}px 'Space Mono',monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.fillText('Terra', ex, ey - maxR * 0.032);
+    ctx.fillStyle = 'rgba(252,110,32,0.7)';
+    ctx.fillText('Marte', mx, my - maxR * 0.026);
+
+    // Update stats
+    const dd = document.getElementById('login-dist');
+    const dl = document.getElementById('login-delay');
+    if (dd) dd.textContent = realDist + ' M km';
+    if (dl) dl.textContent = delay + ' min';
+
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* ── MINI ORBITAL STRIP ── */
+(function drawMiniOrbital() {
+  const canvas = document.getElementById('mini-orbital');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let a = 0;
+  function frame() {
+    a += 0.004;
+    const W = canvas.offsetWidth || 160;
+    const H = canvas.height;
+    canvas.width = W;
+    ctx.clearRect(0, 0, W, H);
+    const cx = W / 2, cy = H / 2;
+    const r1 = H * 0.32, r2 = H * 0.46;
+    // Sun
+    ctx.fillStyle = '#FC8C20';
+    ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI*2); ctx.fill();
+    // Orbits
+    [r1, r2].forEach(r => {
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 0.5; ctx.stroke();
+    });
+    // Earth
+    const ex = cx + r1*Math.cos(a*0.7), ey = cy + r1*Math.sin(a*0.7);
+    ctx.fillStyle = '#378ADD';
+    ctx.beginPath(); ctx.arc(ex, ey, 2.5, 0, Math.PI*2); ctx.fill();
+    // Mars
+    const mx = cx + r2*Math.cos(a*0.42+1.3), my = cy + r2*Math.sin(a*0.42+1.3);
+    ctx.fillStyle = '#C85010';
+    ctx.beginPath(); ctx.arc(mx, my, 2, 0, Math.PI*2); ctx.fill();
+    // Signal
+    ctx.save();
+    ctx.setLineDash([3,5]);
+    ctx.lineDashOffset = -(a*50)%8;
+    ctx.strokeStyle = 'rgba(252,110,32,0.45)'; ctx.lineWidth = 0.7;
+    ctx.beginPath(); ctx.moveTo(ex,ey); ctx.lineTo(mx,my); ctx.stroke();
+    ctx.restore();
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* ── MISSION CODE VALIDATION ── */
+function validateMissionCode(input) {
+  const val = input.value.replace(/[^0-9]/g, '');
+  input.value = val;
+  const valid = val.length >= 6;
+  input.classList.toggle('valid', valid);
+  input.classList.toggle('invalid', val.length > 0 && !valid);
+  document.getElementById('form-error').classList.remove('show');
+}
+
+/* ── PASSWORD TOGGLE ── */
+function togglePassword() {
+  const input = document.getElementById('password');
+  const icon = document.getElementById('eye-icon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  } else {
+    input.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+
+/* ── VALIDATION ── */
+function validateEmail(input) {
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value);
+  input.classList.toggle('valid', valid && input.value.length > 0);
+  input.classList.toggle('invalid', !valid && input.value.length > 3);
+  document.getElementById('form-error').classList.remove('show');
+}
+function validatePassword(input) {
+  input.classList.toggle('valid', input.value.length >= 8);
+  input.classList.toggle('invalid', input.value.length > 0 && input.value.length < 8);
+  document.getElementById('form-error').classList.remove('show');
+}
+
+/* ── LOGIN ── */
+function handleLogin() {
+  const email = document.getElementById('email').value.trim();
+  const code  = document.getElementById('mission-code').value.trim();
+  const pw    = document.getElementById('password').value;
+  const error = document.getElementById('form-error');
+
+  if (!email || !code || !pw) {
+    error.textContent = 'Preencha todos os campos para continuar.';
+    error.classList.add('show');
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    error.textContent = 'Formato de e-mail inválido.';
+    error.classList.add('show');
+    return;
+  }
+  if (code.length < 6) {
+    error.textContent = 'Código de missão inválido.';
+    error.classList.add('show');
+    return;
+  }
+  if (pw.length < 6) {
+    error.textContent = 'Senha incorreta. Tente novamente.';
+    error.classList.add('show');
+    return;
+  }
+
+  // Loading state
+  const btn = document.getElementById('login-btn');
+  const txt = document.getElementById('btn-text');
+  const spinner = document.getElementById('btn-spinner');
+  const arrow = document.getElementById('btn-arrow');
+  btn.classList.add('loading');
+  txt.textContent = 'Autenticando...';
+  spinner.style.display = 'block';
+  arrow.style.display = 'none';
+  error.classList.remove('show');
+
+  // Simulate auth delay
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    txt.textContent = 'Acessar sistema';
+    spinner.style.display = 'none';
+    arrow.style.display = 'block';
+
+    // Show success
+    const overlay = document.getElementById('success-overlay');
+    const msg = document.getElementById('success-msg');
+    msg.textContent = 'ACESSO AUTORIZADO · CARREGANDO PAINEL DE CONTROLE...';
+    overlay.classList.add('show');
+
+    // Animate progress bar
+    setTimeout(() => {
+      document.getElementById('success-fill').style.width = '100%';
+    }, 100);
+
+    // Redirect after bar completes
+    setTimeout(() => {
+      showDashboard();
+    }, 2500);
+
+  }, 1800);
+}
+
+/* ── FORGOT ── */
+function showForgot() {
+  const error = document.getElementById('form-error');
+  error.textContent = 'Contate o administrador do sistema: admin@nasa-ares1.gov';
+  error.classList.add('show');
+}
+
+/* ── ENTER KEY ── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleLogin();
+});
+</script>
+
+</body>
+</html>
